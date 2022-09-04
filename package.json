@@ -1,7 +1,7 @@
 {
   "name": "ghaction-rm-releases",
   "version": "0.0.1",
-  "description": "A GitHub action to remove older releases with Tags.",
+  "description": "A GitHub action to remove older releases with tags.",
   "keywords": ["github","gh-action","github-action"],
   "main": "lib/main.js",
   "repository": "https://github.com/nikhilbadyal/ghaction-rm-releases",

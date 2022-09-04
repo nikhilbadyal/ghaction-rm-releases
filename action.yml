@@ -1,5 +1,5 @@
 name: 'Telegram GitHub Action'
-description: 'A GitHub action to interact with telegram'
+description: 'A GitHub action to remove older releases with tags.'
 author: 'nikhilbadyal'
 inputs:
   github_token:
@@ -7,7 +7,7 @@ inputs:
     description: 'Github token'
   release_pattern:
     required: true
-    description: 'Github token'
+    description: 'Regex pattern to match releases.'
 
 
 runs:
