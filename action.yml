@@ -9,6 +9,11 @@ inputs:
     required: true
     description: 'Regex pattern to match releases.'
 
+branding:
+  icon: 'trash'
+  color: 'red'
+
+
 
 runs:
   using: 'node16'
