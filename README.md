@@ -5,7 +5,7 @@ A GitHub action to remove older releases with their tags.
 ___
 
 * [Usage](#usage)
-* [inputs](#inputs)
+* [Inputs](#inputs)
 
 ## Usage
 
@@ -19,7 +19,7 @@ To use the action, add following to your workflow file
     release_pattern: 'Build*'
 ```
 
-## inputs
+## Inputs
 
 Following inputs can be used as `step.with` keys
 
