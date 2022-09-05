@@ -1,5 +1,5 @@
-name: 'Telegram GitHub Action'
-description: 'A GitHub action to remove older releases with tags.'
+name: 'Rm Release GitHub Action'
+description: 'A GitHub action to remove older releases with their tags.'
 author: 'nikhilbadyal'
 inputs:
   github_token:
