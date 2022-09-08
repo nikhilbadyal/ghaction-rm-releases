@@ -13,7 +13,7 @@ To use the action, add following to your workflow file
 
 ```yaml
 - name: Delete Older Releases
-  uses: nikhilbadyal/ghaction-rm-releases@v0.0.1
+  uses: nikhilbadyal/ghaction-rm-releases@v0.0.2
   with:
     github_token: ${{ secrets.GH_TOKEN }}
     release_pattern: 'Build*'

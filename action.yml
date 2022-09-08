@@ -2,10 +2,10 @@ name: 'Rm Release GitHub Action'
 description: 'A GitHub action to remove older releases with their tags.'
 author: 'nikhilbadyal'
 inputs:
-  github_token:
+  GITHUB_TOKEN:
     required: true
     description: 'Github token'
-  release_pattern:
+  RELEASE_PATTERN:
     required: true
     description: 'Regex pattern to match releases.'
 

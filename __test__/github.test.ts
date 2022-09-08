@@ -19,7 +19,7 @@ beforeEach(() => {
   for (const k in repoEnv) {
     process.env[k] = repoEnv[k]
   }
-  octokit = github.getMyOctokit(process.env.github_token || '', {
+  octokit = github.getMyOctokit(process.env.GITHUB_TOKEN || '', {
     log: console
   })
 })
