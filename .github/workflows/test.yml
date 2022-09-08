@@ -24,7 +24,7 @@ jobs:
           yarn install
           yarn test
         env:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       -
         name: Upload coverage
