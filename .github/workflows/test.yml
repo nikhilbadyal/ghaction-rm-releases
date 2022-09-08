@@ -17,19 +17,15 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v3
+
       -
-        name: Validate
-        uses: docker/bake-action@v2
-        with:
-          targets: validate
-      -
-        name: Test
-        uses: docker/bake-action@v2
-        with:
-          targets: test
+        name: Run tests
+        run : |
+          yarn install
+          yarn test
         env:
-          github_token: ${{ secrets.GH_TOKEN }}
-          release_pattern: '0.0.1*'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
       -
         name: Upload coverage
         uses: codecov/codecov-action@v3

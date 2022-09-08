@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import fs from 'fs'
 import * as path from 'path'
+import { debug } from '@actions/core'
 let octokit
 
 jest.setTimeout(10000)
@@ -18,7 +19,7 @@ beforeEach(() => {
   for (const k in repoEnv) {
     process.env[k] = repoEnv[k]
   }
-  octokit = github.getMyOctokit(process.env.GITHUB_TOKEN || '', {
+  octokit = github.getMyOctokit(process.env.github_token || '', {
     log: console
   })
 })
