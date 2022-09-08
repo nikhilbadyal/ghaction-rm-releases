@@ -2,8 +2,8 @@ import { getOctokit, context } from '@actions/github'
 import type { GitHub } from '@actions/github/lib/utils'
 import { debug, info } from '@actions/core'
 import { asyncForEach } from './utils'
-
-interface Release {
+import type { OctokitOptions } from '@octokit/core/dist-types/types'
+export interface Release {
   id: number
   name: string
   tag_name: string
@@ -12,12 +12,18 @@ interface Release {
   prerelease: boolean
 }
 const minimumReleases = 0
-export function getMyOctokit(token: string): InstanceType<typeof GitHub> {
+export function getMyOctokit(
+  token: string,
+  options?: OctokitOptions
+): InstanceType<typeof GitHub> {
   debug('Initiating GitHub connection.')
-  return getOctokit(token, {})
+  return getOctokit(token, options)
 }
 
-async function getReleases(octokit, pattern: string): Promise<Release[]> {
+export async function getReleases(
+  octokit,
+  pattern: string
+): Promise<Release[]> {
   debug(`Getting releases matching with ${pattern}`)
   try {
     const releases: Release[] = await octokit.paginate(
@@ -26,8 +32,8 @@ async function getReleases(octokit, pattern: string): Promise<Release[]> {
         ...context.repo
       }
     )
-    return releases.filter(function releaseFilter(asset) {
-      return asset.tag_name.match(pattern)
+    return releases.filter(function releaseFilter(release) {
+      return release.tag_name.match(pattern)
     })
   } catch (error) {
     throw new Error(`Unable to list release: ${error}`)
