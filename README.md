@@ -15,8 +15,8 @@ To use the action, add following to your workflow file
 - name: Delete Older Releases
   uses: nikhilbadyal/ghaction-rm-releases@v0.0.2
   with:
-    github_token: ${{ secrets.GH_TOKEN }}
-    release_pattern: 'Build*'
+    GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+    RELEASE_PATTERN: 'Build*'
 ```
 
 ## Inputs
@@ -25,8 +25,8 @@ Following inputs can be used as `step.with` keys
 
 | Name                      | Type   | Default | Description                                                                          |
 |---------------------------|--------|---------|--------------------------------------------------------------------------------------|
-| `github_token`            | String |         | [Github Token](https://github.com/settings/tokens) to delete releases (**required**) |
-| `release_pattern`         | String |         | Pattern to delete from release (**required**)                                        |
+| `GITHUB_TOKEN`            | String |         | [Github Token](https://github.com/settings/tokens) to delete releases (**required**) |
+| `RELEASE_PATTERN`         | String |         | Pattern to delete from release (**required**)                                        |
 
 
 ## Contributing
