@@ -8,7 +8,7 @@ let inputs: ActionInputs
 
 function setupGitHub(): void {
   debug('Getting gitHub Token')
-  octokit = getMyOctokit(inputs.github_token)
+  octokit = getMyOctokit(inputs.GITHUB_TOKEN)
 }
 
 function setUp(): void {
@@ -18,7 +18,7 @@ function setUp(): void {
 async function run(): Promise<void> {
   try {
     setUp()
-    await rmReleases(octokit, inputs.release_pattern)
+    await rmReleases(octokit, inputs.RELEASE_PATTERN)
   } catch (error) {
     if (error instanceof Error) setFailed(error.message)
   }

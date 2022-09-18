@@ -1,13 +1,13 @@
 import { getInput } from '@actions/core'
 
 export interface ActionInputs {
-  readonly github_token: string
-  readonly release_pattern: string
+  readonly GITHUB_TOKEN: string
+  readonly RELEASE_PATTERN: string
 }
 export function getInputs(): ActionInputs {
   return {
-    github_token: getInput('github_token', { required: true }),
-    release_pattern: getInput('release_pattern', { required: true })
+    GITHUB_TOKEN: getInput('GITHUB_TOKEN', { required: true }),
+    RELEASE_PATTERN: getInput('RELEASE_PATTERN', { required: true })
   }
 }
 
