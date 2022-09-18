@@ -12,6 +12,7 @@ on:
 
 jobs:
   test:
+    permissions: write-all
     runs-on: ubuntu-latest
     steps:
       -
@@ -24,7 +25,7 @@ jobs:
           yarn install
           yarn test
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TEST_GITHUB_TOKEN }}
 
       -
         name: Upload coverage
