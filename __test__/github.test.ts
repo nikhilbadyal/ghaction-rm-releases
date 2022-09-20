@@ -83,6 +83,13 @@ describe('github', () => {
       getReleases(invalidOctokit, 'latest-*')
     ).rejects.toThrowError()
   })
+  it('failed on empty token', async () => {
+    let invalidOctokit = await expect(() =>
+      getMyOctokit('', {
+        log: console
+      })
+    ).toThrowError()
+  })
   it('throw an error', async () => {
     let sampleRelease: Release = {
       id: 12,
