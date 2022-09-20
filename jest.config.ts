@@ -1,4 +1,5 @@
 module.exports = {
+  bail: true,
   clearMocks: true,
   moduleFileExtensions: ['js', 'ts'],
   setupFiles: ['dotenv/config'],
