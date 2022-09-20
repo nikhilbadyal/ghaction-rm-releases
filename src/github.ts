@@ -1,6 +1,6 @@
 import { getOctokit, context } from '@actions/github'
 import type { GitHub } from '@actions/github/lib/utils'
-import { debug, info } from '@actions/core'
+import { debug, info, setFailed } from '@actions/core'
 import { asyncForEach } from './utils'
 import type { OctokitOptions } from '@octokit/core/dist-types/types'
 
@@ -18,6 +18,9 @@ export function getMyOctokit(
   options?: OctokitOptions
 ): InstanceType<typeof GitHub> {
   debug('Initiating GitHub connection.')
+  if (token === '') {
+    setFailed('Need Github Token')
+  }
   return getOctokit(token, options)
 }
 
