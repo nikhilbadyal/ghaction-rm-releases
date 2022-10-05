@@ -68,12 +68,6 @@ describe('github', () => {
     searchedReleases = await getReleases(octokit, 'latest-*')
     expect(searchedReleases).not.toBeUndefined()
     expect(searchedReleases.length).toEqual(0)
-    await createRelease()
-    await delay(1000)
-    debug('Recreating for next run')
-    searchedReleases = await getReleases(octokit, 'latest-*')
-    expect(searchedReleases).not.toBeUndefined()
-    expect(searchedReleases.length).toEqual(1)
   })
   it('throw an error', async () => {
     let invalidOctokit = getMyOctokit('lol_invalid_token', {
