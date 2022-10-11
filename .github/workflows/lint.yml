@@ -1,14 +1,9 @@
 name: Lint
 
 on:
-  push:
-    branches:
-      - 'main'
-      - 'releases/v*'
   pull_request:
     branches:
       - 'main'
-      - 'releases/v*'
 
 # Down scope as necessary via https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
 permissions:
