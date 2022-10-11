@@ -14,7 +14,7 @@ import { join } from 'node:path'
 import { debug } from '@actions/core'
 import { context } from '@actions/github'
 let octokit
-const testTimeout = 10_000
+const testTimeout = 20_000
 jest.setTimeout(testTimeout)
 beforeEach(() => {
   for (const key of Object.keys(process.env)) {
@@ -45,6 +45,7 @@ async function createRelease(): Promise<void> {
     })
   } catch (error) {
     // ignoring as release already exists
+    debug(`Failed to create release ${error}`)
   }
 }
 
@@ -61,6 +62,7 @@ describe('github', () => {
   })
   it('should deleteReleaseAndTag', async function () {
     await createRelease()
+    await delay(1000)
     let searchedReleases = await getReleases(octokit, 'latest-*')
     expect(searchedReleases).not.toBeUndefined()
     expect(searchedReleases.length).toEqual(1)
@@ -78,7 +80,7 @@ describe('github', () => {
     ).rejects.toThrowError()
   })
   it('failed on empty token', async () => {
-    let invalidOctokit = await expect(() =>
+    await expect(() =>
       getMyOctokit('', {
         log: console
       })
