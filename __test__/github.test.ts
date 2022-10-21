@@ -35,13 +35,13 @@ beforeEach(() => {
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
-async function createRelease(): Promise<void> {
-  const tagName = 'latest-test'
+async function createRelease(tagName: string = 'latest-tag'): Promise<void> {
   debug(`Creating release with tag ${tagName}`)
   try {
     await octokit.rest.repos.createRelease({
       ...context.repo,
-      tag_name: tagName
+      tag_name: tagName,
+      name: tagName
     })
   } catch (error) {
     // ignoring as release already exists
@@ -51,16 +51,16 @@ async function createRelease(): Promise<void> {
 
 describe('github', () => {
   it('should getReleases', async function () {
-    const release = await getReleases(octokit, '^0.0.1')
+    const release = await getReleases(octokit, '^v0.0.1')
     expect(release).not.toBeUndefined()
     expect(release.length).toEqual(1)
   })
   it('should getReleases', async function () {
-    const release = await getReleases(octokit, '^0.0.*')
+    const release = await getReleases(octokit, '^v0.0.*')
     expect(release).not.toBeUndefined()
     expect(release.length).toEqual(2)
   })
-  it('should deleteReleaseAndTag', async function () {
+  it('should-deleteReleaseAndTag', async function () {
     await createRelease()
     await delay(1000)
     let searchedReleases = await getReleases(octokit, 'latest-*')
@@ -108,7 +108,9 @@ describe('github', () => {
       draft: false,
       prerelease: false
     }
-    await expect(() => deleteTag(octokit, sampleRelease)).rejects.toThrowError()
+    await expect(() =>
+      deleteTag(octokit, sampleRelease.tag_name)
+    ).rejects.toThrowError()
   })
   it('print nothing found', async () => {
     await rmReleases(octokit, 'idontexist')

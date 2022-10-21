@@ -12,6 +12,9 @@ export interface Release {
   draft: boolean
   prerelease: boolean
 }
+export interface Tag {
+  name: string
+}
 const minimumReleases = 0
 export function getMyOctokit(
   token: string,
@@ -37,7 +40,6 @@ export async function getReleases(
       }
     )
     return releases.filter(function releaseFilter(release) {
-      debug(release.tag_name)
       return release.tag_name.match(pattern)
     })
   } catch (error) {
@@ -56,21 +58,36 @@ export async function deleteRelease(octokit, release: Release): Promise<void> {
   }
 }
 
-export async function deleteTag(octokit, release: Release): Promise<void> {
-  debug(`Deleting tag ${release.tag_name}`)
+export async function deleteTag(octokit, tagName: string): Promise<void> {
+  debug(`Deleting tag ${tagName}`)
   try {
     await octokit.rest.git.deleteRef({
       ...context.repo,
-      ref: `tags/${release.tag_name}`
+      ref: `tags/${tagName}`
     })
   } catch (error) {
-    throw new Error(`Unable to delete tag ${release.tag_name}: ${error}`)
+    throw new Error(`Unable to delete tag ${tagName}: ${error}`)
   }
 }
 
 async function deleteReleaseAndTag(octokit, release: Release): Promise<void> {
   await deleteRelease(octokit, release)
-  await deleteTag(octokit, release)
+  await deleteTag(octokit, release.tag_name)
+}
+
+async function lsTags(octokit): Promise<Tag[]> {
+  const tags: Tag[] = await octokit.paginate(octokit.rest.repos.listTags, {
+    ...context.repo
+  })
+  debug(`Found ${tags.length} tags`)
+  return tags
+}
+async function deleteEmptyTag(octokit): Promise<void> {
+  const tags = await lsTags(octokit)
+  await asyncForEach(tags, async tag => {
+    info(`Deleting empty tag with id ${tag.name}`)
+    await deleteTag(octokit, tag.name)
+  })
 }
 
 export async function rmReleases(
@@ -88,4 +105,5 @@ export async function rmReleases(
   } else {
     info('Nothing to delete.Exiting')
   }
+  await deleteEmptyTag(octokit)
 }
