@@ -103,7 +103,7 @@ export async function rmReleases(
       await deleteReleaseAndTag(octokit, release)
     })
   } else {
-    info('Nothing to delete.Exiting')
+    info('No release to delete.')
   }
   await deleteEmptyTag(octokit)
 }
