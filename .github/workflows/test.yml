@@ -21,13 +21,3 @@ jobs:
           yarn test
         env:
           GITHUB_TOKEN: ${{ secrets.TEST_GITHUB_TOKEN }}
-
-      -
-        name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage/clover.xml
-
-      - name: Dump context
-        if: always()
-        uses: crazy-max/ghaction-dump-context@v1
