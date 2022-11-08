@@ -82,17 +82,23 @@ async function lsTags(octokit): Promise<Tag[]> {
   debug(`Found ${tags.length} tags`)
   return tags
 }
-async function deleteEmptyTag(octokit): Promise<void> {
+async function deleteEmptyTag(octokit, skipPattern: string): Promise<void> {
   const tags = await lsTags(octokit)
+  const regex = new RegExp(skipPattern, 'u')
   await asyncForEach(tags, async tag => {
-    info(`Deleting empty tag with id ${tag.name}`)
-    await deleteTag(octokit, tag.name)
+    if (regex.test(tag.name)) {
+      info(`Skipping empty tag with id ${tag.name}`)
+    } else {
+      info(`Deleting empty tag with id ${tag.name}`)
+      await deleteTag(octokit, tag.name)
+    }
   })
 }
 
 export async function rmReleases(
   octokit,
-  releasePattern: string
+  releasePattern: string,
+  skipEmptyTag = '(?!.*)'
 ): Promise<void> {
   const releases: Release[] = await getReleases(octokit, releasePattern)
   const matches: number = releases.length
@@ -105,5 +111,5 @@ export async function rmReleases(
   } else {
     info('No release to delete.')
   }
-  await deleteEmptyTag(octokit)
+  await deleteEmptyTag(octokit, skipEmptyTag)
 }
