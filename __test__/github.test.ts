@@ -14,7 +14,7 @@ import { join } from 'node:path'
 import { debug } from '@actions/core'
 import { context } from '@actions/github'
 let octokit
-const testTimeout = 20_000
+const testTimeout = 30_000
 jest.setTimeout(testTimeout)
 beforeEach(() => {
   for (const key of Object.keys(process.env)) {
@@ -62,11 +62,11 @@ describe('github', () => {
   })
   it('should-deleteReleaseAndTag', async function () {
     await createRelease()
-    await delay(1000)
+    await delay(10000)
     let searchedReleases = await getReleases(octokit, 'latest-*')
     expect(searchedReleases).not.toBeUndefined()
     expect(searchedReleases.length).toEqual(1)
-    await rmReleases(octokit, 'latest-*')
+    await rmReleases(octokit, 'latest-*', '^v0.0.*')
     searchedReleases = await getReleases(octokit, 'latest-*')
     expect(searchedReleases).not.toBeUndefined()
     expect(searchedReleases.length).toEqual(0)
@@ -113,6 +113,6 @@ describe('github', () => {
     ).rejects.toThrowError()
   })
   it('print nothing found', async () => {
-    await rmReleases(octokit, 'idontexist')
+    await rmReleases(octokit, 'idontexist', '^v0.0.*')
   })
 })
