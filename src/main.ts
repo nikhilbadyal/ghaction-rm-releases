@@ -1,7 +1,6 @@
 import { debug, setFailed } from '@actions/core'
 import { getMyOctokit, rmReleases } from './github'
-import type { ActionInputs } from './utils'
-import { getInputs } from './utils'
+import { getInputs, type ActionInputs } from './utils'
 
 let octokit
 let inputs: ActionInputs
