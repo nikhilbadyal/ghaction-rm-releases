@@ -5,7 +5,7 @@ on:
     branches:
       - 'main'
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}
 jobs:
   test:
     permissions: write-all
