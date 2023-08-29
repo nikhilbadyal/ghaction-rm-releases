@@ -79,7 +79,7 @@ describe('github', () => {
     expect(searchedReleases).not.toBeUndefined()
     expect(searchedReleases.length).toEqual(0)
   })
-  it('throw an error', async () => {
+  it('throw an error for invalid token', async () => {
     let invalidOctokit = getMyOctokit('lol_invalid_token', {
       log: console
     })
@@ -94,7 +94,7 @@ describe('github', () => {
       })
     ).toThrowError()
   })
-  it('throw an error', async () => {
+  it('throw an error for not existing release', async () => {
     let sampleRelease: Release = {
       id: 12,
       name: 'test',
@@ -107,7 +107,7 @@ describe('github', () => {
       deleteRelease(octokit, sampleRelease)
     ).rejects.toThrowError()
   })
-  it('throw an error', async () => {
+  it('throw an error for non existing tag', async () => {
     let sampleRelease: Release = {
       id: 12,
       name: 'test',
