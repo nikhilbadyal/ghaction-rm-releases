@@ -11,35 +11,19 @@ import { parse } from 'dotenv'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import fs from 'node:fs'
 import { join } from 'node:path'
-import { debug } from '@actions/core'
+import { info } from '@actions/core'
 import { context } from '@actions/github'
 let octokit
 const testTimeout = 30_000
 jest.setTimeout(testTimeout)
-beforeEach(() => {
-  for (const key of Object.keys(process.env)) {
-    if (key !== 'GITHUB_TOKEN' && key.startsWith('GITHUB_')) {
-      delete process.env[key]
-    }
-  }
-  const repoEnvironment = parse(
-    fs.readFileSync(join(__dirname, 'fixtures', 'repo.env'))
-  )
-  for (const environment in repoEnvironment) {
-    process.env[environment] = repoEnvironment[environment]
-  }
-  octokit = getMyOctokit(process.env.GITHUB_TOKEN ?? '', {
-    log: console
-  })
-})
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 async function createRelease(tagName: string = ''): Promise<void> {
   if (tagName == '') {
-    tagName = process.env['GITHUB_RUN_ID'] ?? 'latest-tag'
+    tagName = 'latest-tag' + process.env['GITHUB_RUN_ID']
+    info(`Creating release ${tagName}`)
   }
-  debug(`Creating release with tag ${tagName}`)
   try {
     await octokit.rest.repos.createRelease({
       ...context.repo,
@@ -48,14 +32,18 @@ async function createRelease(tagName: string = ''): Promise<void> {
     })
   } catch (error) {
     // ignoring as release already exists
-    debug(`Failed to create release ${error}`)
+    info(`Failed to create release ${error}`)
   }
 }
 
 describe('github', () => {
   beforeEach(() => {
     for (const key of Object.keys(process.env)) {
-      if (key !== 'GITHUB_TOKEN' && key.startsWith('GITHUB_')) {
+      if (
+        key !== 'GITHUB_TOKEN' &&
+        key != 'GITHUB_RUN_ID' &&
+        key.startsWith('GITHUB_')
+      ) {
         delete process.env[key]
       }
     }

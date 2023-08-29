@@ -14,6 +14,7 @@
     "prettier-fix": "prettier --write '**/*.ts'",
     "prettier": "prettier --check '**/*.ts'",
     "all": "yarn prettier-fix && yarn prettier && yarn lint-fix && yarn lint && yarn test &&yarn run build",
+    "lints": "yarn prettier-fix && yarn prettier && yarn lint-fix && yarn lint",
     "husky": "husky install",
     "local": "npx tsx src/main.ts",
     "test": "jest --coverage"
