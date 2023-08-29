@@ -1,4 +1,4 @@
-import { debug, setFailed } from '@actions/core'
+import { info, setFailed } from '@actions/core'
 import { getMyOctokit, rmReleases } from './github'
 import { getInputs, type ActionInputs } from './utils'
 
@@ -6,7 +6,7 @@ let octokit
 let inputs: ActionInputs
 
 function setupGitHub(): void {
-  debug('Getting gitHub Token')
+  info('Getting gitHub Token')
   octokit = getMyOctokit(inputs.GITHUB_TOKEN)
 }
 

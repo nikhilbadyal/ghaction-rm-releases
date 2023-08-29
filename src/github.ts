@@ -1,6 +1,6 @@
 import { getOctokit, context } from '@actions/github'
 import type { GitHub } from '@actions/github/lib/utils'
-import { debug, info, setFailed } from '@actions/core'
+import { info, setFailed } from '@actions/core'
 import { asyncForEach } from './utils'
 import type { OctokitOptions } from '@octokit/core/dist-types/types'
 
@@ -20,7 +20,7 @@ export function getMyOctokit(
   token: string,
   options?: OctokitOptions
 ): InstanceType<typeof GitHub> {
-  debug('Initiating GitHub connection.')
+  info('Initiating GitHub connection.')
   if (token === '') {
     setFailed('Need "Github Token')
     throw new Error('Need Github Token')
@@ -32,7 +32,7 @@ export async function getReleases(
   octokit,
   pattern: string
 ): Promise<Release[]> {
-  debug(`Getting releases matching with ${pattern}`)
+  info(`Getting releases matching with ${pattern}`)
   try {
     const releases: Release[] = await octokit.paginate(
       octokit.rest.repos.listReleases,
@@ -48,7 +48,7 @@ export async function getReleases(
   }
 }
 export async function deleteRelease(octokit, release: Release): Promise<void> {
-  debug(`Deleting release ${release.id}`)
+  info(`Deleting release ${release.id}`)
   try {
     await octokit.rest.repos.deleteRelease({
       ...context.repo,
@@ -60,7 +60,7 @@ export async function deleteRelease(octokit, release: Release): Promise<void> {
 }
 
 export async function deleteTag(octokit, tagName: string): Promise<void> {
-  debug(`Deleting tag ${tagName}`)
+  info(`Deleting tag ${tagName}`)
   try {
     await octokit.rest.git.deleteRef({
       ...context.repo,
@@ -80,7 +80,7 @@ async function lsTags(octokit): Promise<Tag[]> {
   const tags: Tag[] = await octokit.paginate(octokit.rest.repos.listTags, {
     ...context.repo
   })
-  debug(`Found ${tags.length} tags`)
+  info(`Found ${tags.length} tags`)
   return tags
 }
 async function deleteEmptyTag(octokit, skipPattern: string): Promise<void> {
@@ -88,9 +88,9 @@ async function deleteEmptyTag(octokit, skipPattern: string): Promise<void> {
   const regex = new RegExp(skipPattern, 'u')
   await asyncForEach(tags, async tag => {
     if (regex.test(tag.name)) {
-      info(`Skipping empty tag with id ${tag.name}`)
+      info(`Skipping tag with id ${tag.name}`)
     } else {
-      info(`Deleting empty tag with id ${tag.name}`)
+      info(`Deleting tag with id ${tag.name}`)
       await deleteTag(octokit, tag.name)
     }
   })
@@ -104,7 +104,7 @@ export async function rmReleases(
   const releases: Release[] = await getReleases(octokit, releasePattern)
   const matches: number = releases.length
   if (matches > minimumReleases) {
-    debug(`Found ${releases.length.toString()} release to delete.`)
+    info(`Found ${releases.length.toString()} release to delete.`)
     await asyncForEach(releases, async (release: Release) => {
       await deleteReleaseAndTag(octokit, release)
     })
