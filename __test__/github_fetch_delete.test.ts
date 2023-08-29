@@ -25,7 +25,7 @@ async function createRelease(tagName: string = ''): Promise<string> {
     })
   } catch (error) {
     // ignoring as release already exists
-    info(`Failed to create release ${error}`)
+    info(`Failed to create release ${tagName} because of ${error}`)
   }
   return tagName
 }

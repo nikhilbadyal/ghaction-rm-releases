@@ -47,7 +47,10 @@ export async function getReleases(
     throw new Error(`Unable to list release: ${error}`)
   }
 }
-export async function deleteRelease(octokit, release: Release): Promise<void> {
+export async function deleteRelease(
+  octokit: InstanceType<typeof GitHub>,
+  release: Release
+): Promise<void> {
   info(`Deleting release ${release.id}`)
   try {
     await octokit.rest.repos.deleteRelease({
