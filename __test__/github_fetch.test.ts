@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-import type { Release } from '../src/github'
 import {
-  deleteRelease,
-  deleteTag,
   getMyOctokit,
-  getReleases,
-  rmReleases
-} from '../src/github'
+  getReleases} from '../src/github'
 import { parse } from 'dotenv'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import fs from 'node:fs'
@@ -37,7 +32,7 @@ async function createRelease(tagName: string = ''): Promise<string> {
   return tagName
 }
 
-describe('github', () => {
+describe('fetching test cases', () => {
   beforeEach(() => {
     for (const key of Object.keys(process.env)) {
       if (
@@ -67,60 +62,5 @@ describe('github', () => {
     const release = await getReleases(octokit, '^v0.0.*')
     expect(release).not.toBeUndefined()
     expect(release.length).toEqual(2)
-  })
-  it('should-deleteReleaseAndTag', async function () {
-    let tag_name = await createRelease()
-    await delay(10000)
-    let searchedReleases = await getReleases(octokit, tag_name)
-    expect(searchedReleases).not.toBeUndefined()
-    expect(searchedReleases.length).toEqual(1)
-    await rmReleases(octokit, tag_name, '^v0.0.*')
-    searchedReleases = await getReleases(octokit, tag_name)
-    expect(searchedReleases).not.toBeUndefined()
-    expect(searchedReleases.length).toEqual(0)
-  })
-  it('throw an error', async () => {
-    let invalidOctokit = getMyOctokit('lol_invalid_token', {
-      log: console
-    })
-    await expect(() =>
-      getReleases(invalidOctokit, 'latest-*')
-    ).rejects.toThrowError()
-  })
-  it('failed on empty token', async () => {
-    await expect(() =>
-      getMyOctokit('', {
-        log: console
-      })
-    ).toThrowError()
-  })
-  it('throw an error', async () => {
-    let sampleRelease: Release = {
-      id: 12,
-      name: 'test',
-      tag_name: 'latest',
-      body: 'body',
-      draft: false,
-      prerelease: false
-    }
-    await expect(() =>
-      deleteRelease(octokit, sampleRelease)
-    ).rejects.toThrowError()
-  })
-  it('throw an error', async () => {
-    let sampleRelease: Release = {
-      id: 12,
-      name: 'test',
-      tag_name: 'idontexist',
-      body: 'body',
-      draft: false,
-      prerelease: false
-    }
-    await expect(() =>
-      deleteTag(octokit, sampleRelease.tag_name)
-    ).rejects.toThrowError()
-  })
-  it('print nothing found', async () => {
-    await rmReleases(octokit, 'idontexist', '^v0.0.*')
   })
 })
