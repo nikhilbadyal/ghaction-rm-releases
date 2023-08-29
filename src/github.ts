@@ -22,7 +22,8 @@ export function getMyOctokit(
 ): InstanceType<typeof GitHub> {
   debug('Initiating GitHub connection.')
   if (token === '') {
-    setFailed('Need Github Token')
+    setFailed('Need "Github Token')
+    throw new Error('Need Github Token')
   }
   return getOctokit(token, options)
 }
@@ -103,9 +104,8 @@ export async function rmReleases(
   const releases: Release[] = await getReleases(octokit, releasePattern)
   const matches: number = releases.length
   if (matches > minimumReleases) {
-    debug(`Found ${releases.length.toString()} to delete`)
-    await asyncForEach(releases, async release => {
-      info(`Deleting release ${release.name} with id ${release.id}`)
+    debug(`Found ${releases.length.toString()} release to delete.`)
+    await asyncForEach(releases, async (release: Release) => {
       await deleteReleaseAndTag(octokit, release)
     })
   } else {

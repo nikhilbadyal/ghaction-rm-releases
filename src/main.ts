@@ -19,7 +19,9 @@ async function run(): Promise<void> {
     setUp()
     await rmReleases(octokit, inputs.RELEASE_PATTERN)
   } catch (error) {
-    if (error instanceof Error) setFailed(error.message)
+    if (error instanceof Error) {
+      setFailed(error.message)
+    }
   }
 }
 // eslint-disable-next-line capitalized-comments
