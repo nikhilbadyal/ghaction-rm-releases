@@ -19,7 +19,7 @@ jest.setTimeout(testTimeout)
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
-async function createRelease(tagName: string = ''): Promise<void> {
+async function createRelease(tagName: string = ''): Promise<string> {
   if (tagName == '') {
     tagName = 'latest-tag' + process.env['GITHUB_RUN_ID']
     info(`Creating release ${tagName}`)
@@ -34,6 +34,7 @@ async function createRelease(tagName: string = ''): Promise<void> {
     // ignoring as release already exists
     info(`Failed to create release ${error}`)
   }
+  return tagName
 }
 
 describe('github', () => {
@@ -68,13 +69,13 @@ describe('github', () => {
     expect(release.length).toEqual(2)
   })
   it('should-deleteReleaseAndTag', async function () {
-    await createRelease()
+    let tag_name = await createRelease()
     await delay(10000)
-    let searchedReleases = await getReleases(octokit, 'latest-*')
+    let searchedReleases = await getReleases(octokit, tag_name)
     expect(searchedReleases).not.toBeUndefined()
     expect(searchedReleases.length).toEqual(1)
-    await rmReleases(octokit, 'latest-*', '^v0.0.*')
-    searchedReleases = await getReleases(octokit, 'latest-*')
+    await rmReleases(octokit, tag_name, '^v0.0.*')
+    searchedReleases = await getReleases(octokit, tag_name)
     expect(searchedReleases).not.toBeUndefined()
     expect(searchedReleases.length).toEqual(0)
   })
