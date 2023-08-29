@@ -59,7 +59,10 @@ export async function deleteRelease(octokit, release: Release): Promise<void> {
   }
 }
 
-export async function deleteTag(octokit, tagName: string): Promise<void> {
+export async function deleteTag(
+  octokit: InstanceType<typeof GitHub>,
+  tagName: string
+): Promise<void> {
   info(`Deleting tag ${tagName}`)
   try {
     await octokit.rest.git.deleteRef({
@@ -71,38 +74,17 @@ export async function deleteTag(octokit, tagName: string): Promise<void> {
   }
 }
 
-async function deleteReleaseAndTag(octokit, release: Release): Promise<void> {
+async function deleteReleaseAndTag(
+  octokit: InstanceType<typeof GitHub>,
+  release: Release
+): Promise<void> {
   await deleteRelease(octokit, release)
   await deleteTag(octokit, release.tag_name)
 }
 
-async function lsTags(octokit): Promise<Tag[]> {
-  const tags: Tag[] = await octokit.paginate(octokit.rest.repos.listTags, {
-    ...context.repo
-  })
-  info(`Found ${tags.length} tags`)
-  return tags
-}
-async function deleteEmptyTag(
-  octokit: InstanceType<typeof GitHub>,
-  skipPattern: string
-): Promise<void> {
-  const tags = await lsTags(octokit)
-  const regex = new RegExp(skipPattern, 'u')
-  await asyncForEach(tags, async tag => {
-    if (regex.test(tag.name)) {
-      info(`Skipping tag with id ${tag.name}`)
-    } else {
-      info(`Deleting tag with id ${tag.name}`)
-      await deleteTag(octokit, tag.name)
-    }
-  })
-}
-
 export async function rmReleases(
   octokit: InstanceType<typeof GitHub>,
-  releasePattern: string,
-  skipEmptyTag = '(?!.*)'
+  releasePattern: string
 ): Promise<void> {
   const releases: Release[] = await getReleases(octokit, releasePattern)
   const matches: number = releases.length
@@ -114,5 +96,4 @@ export async function rmReleases(
   } else {
     info('No release to delete.')
   }
-  await deleteEmptyTag(octokit, skipEmptyTag)
 }

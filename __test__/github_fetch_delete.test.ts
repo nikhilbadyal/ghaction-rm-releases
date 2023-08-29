@@ -57,7 +57,7 @@ describe('fetch & delete tests', () => {
     let searchedReleases = await getReleases(octokit, tag_name)
     expect(searchedReleases).not.toBeUndefined()
     expect(searchedReleases.length).toEqual(1)
-    await rmReleases(octokit, tag_name, '^v0.0.*')
+    await rmReleases(octokit, tag_name)
     searchedReleases = await getReleases(octokit, tag_name)
     expect(searchedReleases).not.toBeUndefined()
     expect(searchedReleases.length).toEqual(0)

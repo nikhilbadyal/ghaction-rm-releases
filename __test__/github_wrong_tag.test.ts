@@ -34,7 +34,7 @@ describe('wrong tags and releases', () => {
       log: console
     })
   })
-  it('throw an error', async () => {
+  it('throw an error on wrong release', async () => {
     let sampleRelease: Release = {
       id: 12,
       name: 'test',
@@ -47,7 +47,7 @@ describe('wrong tags and releases', () => {
       deleteRelease(octokit, sampleRelease)
     ).rejects.toThrowError()
   })
-  it('throw an error', async () => {
+  it('throw an error on wrong tag', async () => {
     let sampleRelease: Release = {
       id: 12,
       name: 'test',
@@ -61,6 +61,6 @@ describe('wrong tags and releases', () => {
     ).rejects.toThrowError()
   })
   it('print nothing found', async () => {
-    await rmReleases(octokit, 'idontexist', '^v0.0.*')
+    await rmReleases(octokit, 'idontexist')
   })
 })

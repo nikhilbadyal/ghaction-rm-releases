@@ -9,9 +9,7 @@ describe('auth tests', () => {
     let invalidOctokit = getMyOctokit('lol_invalid_token', {
       log: console
     })
-    await expect(() =>
-      getReleases(invalidOctokit, 'latest-*')
-    ).rejects.toThrowError()
+    await expect(() => getReleases(invalidOctokit, 'bs')).rejects.toThrowError()
   })
   it('failed on empty token', async () => {
     await expect(() =>
