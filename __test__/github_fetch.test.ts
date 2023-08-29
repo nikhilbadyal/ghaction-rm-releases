@@ -6,31 +6,9 @@ import { parse } from 'dotenv'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import fs from 'node:fs'
 import { join } from 'node:path'
-import { info } from '@actions/core'
-import { context } from '@actions/github'
 let octokit
 const testTimeout = 30_000
 jest.setTimeout(testTimeout)
-function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-async function createRelease(tagName: string = ''): Promise<string> {
-  if (tagName == '') {
-    tagName = 'latest-tag' + process.env['GITHUB_RUN_ID']
-    info(`Creating release ${tagName}`)
-  }
-  try {
-    await octokit.rest.repos.createRelease({
-      ...context.repo,
-      tag_name: tagName,
-      name: tagName
-    })
-  } catch (error) {
-    // ignoring as release already exists
-    info(`Failed to create release ${error}`)
-  }
-  return tagName
-}
 
 describe('fetching test cases', () => {
   beforeEach(() => {
