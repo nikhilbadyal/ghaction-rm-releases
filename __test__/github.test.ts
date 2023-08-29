@@ -35,7 +35,10 @@ beforeEach(() => {
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
-async function createRelease(tagName: string = 'latest-tag'): Promise<void> {
+async function createRelease(tagName: string = ''): Promise<void> {
+  if (tagName == '') {
+    tagName = process.env['GITHUB_RUN_ID'] ?? 'latest-tag'
+  }
   debug(`Creating release with tag ${tagName}`)
   try {
     await octokit.rest.repos.createRelease({
