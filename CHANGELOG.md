@@ -1,4 +1,7 @@
 # Changelog
+## v0.0.3 (2022/09/08)
+
+* Updated Dependencies
 
 ## v0.0.2 (2022/09/08)
 
