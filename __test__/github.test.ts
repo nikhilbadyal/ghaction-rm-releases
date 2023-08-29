@@ -50,12 +50,28 @@ async function createRelease(tagName: string = 'latest-tag'): Promise<void> {
 }
 
 describe('github', () => {
-  it('should getReleases', async function () {
+  beforeEach(() => {
+    for (const key of Object.keys(process.env)) {
+      if (key !== 'GITHUB_TOKEN' && key.startsWith('GITHUB_')) {
+        delete process.env[key]
+      }
+    }
+    const repoEnvironment = parse(
+      fs.readFileSync(join(__dirname, 'fixtures', 'repo.env'))
+    )
+    for (const environment in repoEnvironment) {
+      process.env[environment] = repoEnvironment[environment]
+    }
+    octokit = getMyOctokit(process.env.GITHUB_TOKEN ?? '', {
+      log: console
+    })
+  })
+  it('should getReleases exact version', async function () {
     const release = await getReleases(octokit, '^v0.0.1')
     expect(release).not.toBeUndefined()
     expect(release.length).toEqual(1)
   })
-  it('should getReleases', async function () {
+  it('should getReleases with wildcard', async function () {
     const release = await getReleases(octokit, '^v0.0.*')
     expect(release).not.toBeUndefined()
     expect(release.length).toEqual(2)
