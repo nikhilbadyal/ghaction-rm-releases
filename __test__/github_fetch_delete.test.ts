@@ -12,9 +12,16 @@ jest.setTimeout(testTimeout)
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
+function generateRandomInteger(min, max) {
+  return Math.floor(min + Math.random() * (max - min + 1))
+}
+
 async function createRelease(tagName: string = ''): Promise<string> {
   if (tagName == '') {
-    tagName = 'latest-tag' + process.env['GITHUB_RUN_ID']
+    tagName =
+      'latest-tag' +
+      process.env['GITHUB_RUN_ID'] +
+      generateRandomInteger(1, 999)
     info(`Creating release ${tagName}`)
   }
   try {
