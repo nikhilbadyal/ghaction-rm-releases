@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-import {
-  getMyOctokit,
-  getReleases} from '../src/github'
+import { getMyOctokit, getReleases } from '../src/github'
 import { describe, expect, it, jest } from '@jest/globals'
 const testTimeout = 30_000
 jest.setTimeout(testTimeout)

@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-import {
-  getMyOctokit,
-  getReleases} from '../src/github'
+import { getMyOctokit, getReleases } from '../src/github'
 import { parse } from 'dotenv'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import fs from 'node:fs'

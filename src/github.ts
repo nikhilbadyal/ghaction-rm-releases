@@ -83,7 +83,10 @@ async function lsTags(octokit): Promise<Tag[]> {
   info(`Found ${tags.length} tags`)
   return tags
 }
-async function deleteEmptyTag(octokit, skipPattern: string): Promise<void> {
+async function deleteEmptyTag(
+  octokit: InstanceType<typeof GitHub>,
+  skipPattern: string
+): Promise<void> {
   const tags = await lsTags(octokit)
   const regex = new RegExp(skipPattern, 'u')
   await asyncForEach(tags, async tag => {
@@ -97,7 +100,7 @@ async function deleteEmptyTag(octokit, skipPattern: string): Promise<void> {
 }
 
 export async function rmReleases(
-  octokit,
+  octokit: InstanceType<typeof GitHub>,
   releasePattern: string,
   skipEmptyTag = '(?!.*)'
 ): Promise<void> {

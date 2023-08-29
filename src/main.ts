@@ -1,8 +1,9 @@
 import { info, setFailed } from '@actions/core'
 import { getMyOctokit, rmReleases } from './github'
 import { getInputs, type ActionInputs } from './utils'
+import type { GitHub } from '@actions/github/lib/utils'
 
-let octokit
+let octokit: InstanceType<typeof GitHub>
 let inputs: ActionInputs
 
 function setupGitHub(): void {
