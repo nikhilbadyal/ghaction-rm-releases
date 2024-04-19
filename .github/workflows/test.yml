@@ -27,4 +27,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TEST_GITHUB_TOKEN }}
 
       - name: Dump context
-        uses: crazy-max/ghaction-dump-context@v2.1.0
+        uses: crazy-max/ghaction-dump-context@v2.3.0
