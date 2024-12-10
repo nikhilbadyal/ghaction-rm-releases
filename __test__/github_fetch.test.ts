@@ -4,6 +4,7 @@ import { parse } from 'dotenv'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import fs from 'node:fs'
 import { join } from 'node:path'
+import { debug, info } from '@actions/core'
 let octokit
 const testTimeout = 30_000
 jest.setTimeout(testTimeout)
@@ -16,6 +17,7 @@ describe('fetching test cases', () => {
         key != 'GITHUB_RUN_ID' &&
         key.startsWith('GITHUB_')
       ) {
+        debug(`Deleting env - ${key}`)
         delete process.env[key]
       }
     }
@@ -25,7 +27,8 @@ describe('fetching test cases', () => {
     for (const environment in repoEnvironment) {
       process.env[environment] = repoEnvironment[environment]
     }
-    octokit = getMyOctokit(process.env.GITHUB_TOKEN ?? '', {
+    // @ts-ignore
+    octokit = getMyOctokit(process.env.GITHUB_TOKEN, {
       log: console
     })
   })

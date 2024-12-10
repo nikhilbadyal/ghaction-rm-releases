@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - 'main'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -18,8 +19,7 @@ jobs:
         name: Checkout
         uses: actions/checkout@v4
 
-      -
-        name: Run tests
+      - name: Run tests
         run : |
           yarn install
           yarn test

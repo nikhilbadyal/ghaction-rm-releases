@@ -12,7 +12,7 @@ describe('auth tests', () => {
     await expect(() => getReleases(invalidOctokit, 'bs')).rejects.toThrowError()
   })
   it('failed on empty token', async () => {
-    await expect(() =>
+    expect(() =>
       getMyOctokit('', {
         log: console
       })
