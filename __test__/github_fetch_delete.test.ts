@@ -351,4 +351,209 @@ describe("fetch & delete tests", () => {
     expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalled()
     expect(mockOctokit.rest.git.deleteRef).not.toHaveBeenCalled()
   })
+
+  it("should exclude releases matching EXCLUDE_PATTERN", async function () {
+    const mockReleases = [
+      {
+        body: "Test release 1",
+        created_at: "2023-01-01T00:00:00Z",
+        draft: false,
+        id: 1,
+        name: "Release v0.0.1",
+        prerelease: false,
+        tag_name: "v0.0.1"
+      },
+      {
+        body: "Test release 2",
+        created_at: "2023-01-02T00:00:00Z",
+        draft: false,
+        id: 2,
+        name: "Release v0.0.2",
+        prerelease: false,
+        tag_name: "v0.0.2"
+      },
+      {
+        body: "Test release 3",
+        created_at: "2023-01-03T00:00:00Z",
+        draft: false,
+        id: 3,
+        name: "Release v0.0.3",
+        prerelease: false,
+        tag_name: "v0.0.3"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
+    mockOctokit.rest.repos.deleteRelease.mockResolvedValue(undefined)
+    mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
+
+    const octokit = getMyOctokit("mock-token")
+    // Exclude v0.0.2, keep 0, so v0.0.1 and v0.0.3 should be considered for deletion
+    // Since v0.0.3 is newer, v0.0.1 should be deleted.
+    await rmReleases(octokit, "^v0.0.*", 0, "v0.0.2")
+
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
+    expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(2)
+
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      owner: "nikhilbadyal",
+      release_id: 1,
+      repo: "test-repo"
+    })
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      owner: "nikhilbadyal",
+      release_id: 3,
+      repo: "test-repo"
+    })
+  })
+
+  it("should not exclude any releases if EXCLUDE_PATTERN is empty", async function () {
+    const mockReleases = [
+      {
+        body: "Test release 1",
+        created_at: "2023-01-01T00:00:00Z",
+        draft: false,
+        id: 1,
+        name: "Release v0.0.1",
+        prerelease: false,
+        tag_name: "v0.0.1"
+      },
+      {
+        body: "Test release 2",
+        created_at: "2023-01-02T00:00:00Z",
+        draft: false,
+        id: 2,
+        name: "Release v0.0.2",
+        prerelease: false,
+        tag_name: "v0.0.2"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
+    mockOctokit.rest.repos.deleteRelease.mockResolvedValue(undefined)
+    mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
+
+    const octokit = getMyOctokit("mock-token")
+    await rmReleases(octokit, "^v0.0.*", 0, "") // Empty exclude pattern
+
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
+    expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(2)
+  })
+
+  it("should not exclude any releases if EXCLUDE_PATTERN is not provided", async function () {
+    const mockReleases = [
+      {
+        body: "Test release 1",
+        created_at: "2023-01-01T00:00:00Z",
+        draft: false,
+        id: 1,
+        name: "Release v0.0.1",
+        prerelease: false,
+        tag_name: "v0.0.1"
+      },
+      {
+        body: "Test release 2",
+        created_at: "2023-01-02T00:00:00Z",
+        draft: false,
+        id: 2,
+        name: "Release v0.0.2",
+        prerelease: false,
+        tag_name: "v0.0.2"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
+    mockOctokit.rest.repos.deleteRelease.mockResolvedValue(undefined)
+    mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
+
+    const octokit = getMyOctokit("mock-token")
+    await rmReleases(octokit, "^v0.0.*", 0, "") // Exclude pattern not provided
+
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
+    expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(2)
+  })
+
+  it("should throw if EXCLUDE_PATTERN is invalid regex", async function () {
+    const mockReleases = [
+      {
+        body: "Test release 1",
+        created_at: "2023-01-01T00:00:00Z",
+        draft: false,
+        id: 1,
+        name: "Release v0.0.1",
+        prerelease: false,
+        tag_name: "v0.0.1"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
+    const octokit = getMyOctokit("mock-token")
+    await expect(rmReleases(octokit, "^v0.0.*", 0, "[")).rejects.toThrow()
+  })
+
+  it("should exclude all releases if EXCLUDE_PATTERN matches all", async function () {
+    const mockReleases = [
+      {
+        body: "Test release 1",
+        created_at: "2023-01-01T00:00:00Z",
+        draft: false,
+        id: 1,
+        name: "Release v0.0.1",
+        prerelease: false,
+        tag_name: "v0.0.1"
+      },
+      {
+        body: "Test release 2",
+        created_at: "2023-01-02T00:00:00Z",
+        draft: false,
+        id: 2,
+        name: "Release v0.0.2",
+        prerelease: false,
+        tag_name: "v0.0.2"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
+    mockOctokit.rest.repos.deleteRelease.mockResolvedValue(undefined)
+    mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
+
+    const octokit = getMyOctokit("mock-token")
+    await rmReleases(octokit, "^v0.0.*", 0, ".*")
+
+    expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalled()
+    expect(mockOctokit.rest.git.deleteRef).not.toHaveBeenCalled()
+  })
+
+  it("should not exclude any releases if EXCLUDE_PATTERN matches none", async function () {
+    const mockReleases = [
+      {
+        body: "Test release 1",
+        created_at: "2023-01-01T00:00:00Z",
+        draft: false,
+        id: 1,
+        name: "Release v0.0.1",
+        prerelease: false,
+        tag_name: "v0.0.1"
+      },
+      {
+        body: "Test release 2",
+        created_at: "2023-01-02T00:00:00Z",
+        draft: false,
+        id: 2,
+        name: "Release v0.0.2",
+        prerelease: false,
+        tag_name: "v0.0.2"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
+    mockOctokit.rest.repos.deleteRelease.mockResolvedValue(undefined)
+    mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
+
+    const octokit = getMyOctokit("mock-token")
+    await rmReleases(octokit, "^v0.0.*", 0, "doesnotmatch")
+
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
+    expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(2)
+  })
 })

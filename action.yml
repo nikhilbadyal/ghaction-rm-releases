@@ -12,6 +12,9 @@ inputs:
     required: false
     description: "Number of most recent releases to keep after filtering by RELEASE_PATTERN. Defaults to 0 (delete all matching releases)."
     default: 0
+  EXCLUDE_PATTERN:
+    required: false
+    description: "Regex pattern to exclude releases from deletion."
 
 branding:
   icon: "trash"

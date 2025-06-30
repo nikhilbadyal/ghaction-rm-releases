@@ -114,9 +114,16 @@ async function deleteReleaseAndTag(
 export async function rmReleases(
   octokit: InstanceType<typeof GitHub>,
   releasePattern: string,
-  releasesToKeep: number
+  releasesToKeep: number,
+  excludePattern: string = ""
 ): Promise<void> {
-  const releases: Release[] = await getReleases(octokit, releasePattern)
+  let releases: Release[] = await getReleases(octokit, releasePattern)
+
+  if (excludePattern) {
+    const excludeRegex = new RegExp(excludePattern)
+    releases = releases.filter(release => !excludeRegex.test(release.tag_name))
+  }
+
   const matches: number = releases.length
 
   if (matches <= releasesToKeep) {

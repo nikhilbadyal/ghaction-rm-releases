@@ -18,7 +18,12 @@ function setUp(): void {
 async function run(): Promise<void> {
   try {
     setUp()
-    await rmReleases(octokit, inputs.RELEASE_PATTERN, inputs.RELEASES_TO_KEEP)
+    await rmReleases(
+      octokit,
+      inputs.RELEASE_PATTERN,
+      inputs.RELEASES_TO_KEEP,
+      inputs.EXCLUDE_PATTERN
+    )
   } catch (error) {
     setFailed(error instanceof Error ? error.message : String(error))
   }

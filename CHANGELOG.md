@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.0 (2025/06/30)
+
+- Added `EXCLUDE_PATTERN` feature to exclude pattern from release deletion
+
 ## v0.1.0 (2025/06/30)
 
 - Added `RELEASES_TO_KEEP` feature to retain a specified number of recent releases.

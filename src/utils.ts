@@ -4,6 +4,7 @@ export interface ActionInputs {
   readonly GITHUB_TOKEN: string
   readonly RELEASE_PATTERN: string
   readonly RELEASES_TO_KEEP: number
+  readonly EXCLUDE_PATTERN: string
 }
 export function getInputs(): ActionInputs {
   const releasesToKeepInput = getInput("RELEASES_TO_KEEP", { required: false })
@@ -20,8 +21,9 @@ export function getInputs(): ActionInputs {
   }
 
   return {
+    EXCLUDE_PATTERN: getInput("EXCLUDE_PATTERN", { required: false }),
     GITHUB_TOKEN: getInput("GITHUB_TOKEN", { required: true }),
-    RELEASES_TO_KEEP: Math.max(0, releasesToKeep),
+    RELEASES_TO_KEEP: releasesToKeep,
     RELEASE_PATTERN: getInput("RELEASE_PATTERN", { required: true })
   }
 }
