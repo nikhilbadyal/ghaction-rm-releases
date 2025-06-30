@@ -55,6 +55,7 @@ describe("wrong tags and releases", () => {
   it("throw an error on wrong release", async () => {
     const sampleRelease: Release = {
       body: "body",
+      created_at: "2023-01-01T00:00:00Z",
       draft: false,
       id: 12,
       name: "test",
@@ -83,6 +84,7 @@ describe("wrong tags and releases", () => {
   it("throw an error on wrong tag", async () => {
     const sampleRelease: Release = {
       body: "body",
+      created_at: "2023-01-01T00:00:00Z",
       draft: false,
       id: 12,
       name: "test",
@@ -115,7 +117,7 @@ describe("wrong tags and releases", () => {
     mockOctokit.paginate.mockResolvedValue([])
 
     // This should complete without errors
-    await rmReleases(octokit, "idontexist")
+    await rmReleases(octokit, "idontexist", 0)
 
     expect(mockOctokit.paginate).toHaveBeenCalledWith(
       mockOctokit.rest.repos.listReleases,
@@ -136,7 +138,7 @@ describe("wrong tags and releases", () => {
     // Mock authentication error
     mockOctokit.paginate.mockRejectedValue(new Error("Bad credentials"))
 
-    await expect(rmReleases(octokit, "some-pattern")).rejects.toThrow(
+    await expect(rmReleases(octokit, "some-pattern", 0)).rejects.toThrow(
       "Unable to list release: Bad credentials"
     )
   })
@@ -144,6 +146,7 @@ describe("wrong tags and releases", () => {
   it("should handle rate limiting errors", async () => {
     const sampleRelease: Release = {
       body: "body",
+      created_at: "2023-01-01T00:00:00Z",
       draft: false,
       id: 123,
       name: "test",
@@ -166,6 +169,7 @@ describe("wrong tags and releases", () => {
   it("should handle non-Error object in deleteRelease catch", async () => {
     const sampleRelease: Release = {
       body: "body",
+      created_at: "2023-01-01T00:00:00Z",
       draft: false,
       id: 456,
       name: "test",

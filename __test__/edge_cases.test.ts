@@ -246,7 +246,7 @@ describe("Edge Cases and Input Validation", () => {
 
       const octokit = getMyOctokit("mock-token")
 
-      await expect(rmReleases(octokit, "^v.*")).rejects.toThrow(
+      await expect(rmReleases(octokit, "^v.*", 0)).rejects.toThrow(
         "Release not found"
       )
     })
@@ -269,7 +269,9 @@ describe("Edge Cases and Input Validation", () => {
 
       const octokit = getMyOctokit("mock-token")
 
-      await expect(rmReleases(octokit, "^v.*")).rejects.toThrow("Tag not found")
+      await expect(rmReleases(octokit, "^v.*", 0)).rejects.toThrow(
+        "Tag not found"
+      )
 
       // Verify release deletion was attempted
       expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
@@ -360,6 +362,7 @@ describe("Edge Cases and Input Validation", () => {
     it("should handle tag names with special characters", async () => {
       const specialRelease = {
         body: "Test release",
+        created_at: "2023-01-01T00:00:00Z",
         draft: false,
         id: 1,
         name: "Release with special chars",

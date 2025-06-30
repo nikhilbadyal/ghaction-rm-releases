@@ -8,6 +8,10 @@ inputs:
   RELEASE_PATTERN:
     required: true
     description: "Regex pattern to match releases."
+  RELEASES_TO_KEEP:
+    required: false
+    description: "Number of most recent releases to keep after filtering by RELEASE_PATTERN. Defaults to 0 (delete all matching releases)."
+    default: 0
 
 branding:
   icon: "trash"

@@ -36,6 +36,7 @@ describe("main.ts", () => {
     // Setup default mocks
     mockUtils.getInputs.mockReturnValue({
       GITHUB_TOKEN: "mock-token",
+      RELEASES_TO_KEEP: 5,
       RELEASE_PATTERN: "^v0.0.*"
     })
     mockGithub.getMyOctokit.mockReturnValue({})

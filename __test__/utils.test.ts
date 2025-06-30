@@ -9,6 +9,7 @@ function getInputName(name: string): string {
 function setInput(name: string, value: string): void {
   process.env[getInputName(name)] = value
 }
+
 describe("get inputs", () => {
   it("should getInputs", async function () {
     setInput("GITHUB_TOKEN", "mytoken")
@@ -16,5 +17,61 @@ describe("get inputs", () => {
     const inputs = getInputs()
     expect(inputs.GITHUB_TOKEN).toEqual("mytoken")
     expect(inputs.RELEASE_PATTERN).toEqual("pattern*")
+  })
+
+  it("should handle default RELEASES_TO_KEEP when not provided", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    // Not setting RELEASES_TO_KEEP
+    const inputs = getInputs()
+    expect(inputs.RELEASES_TO_KEEP).toEqual(0)
+  })
+
+  it("should parse valid RELEASES_TO_KEEP number", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    setInput("RELEASES_TO_KEEP", "5")
+    const inputs = getInputs()
+    expect(inputs.RELEASES_TO_KEEP).toEqual(5)
+  })
+
+  it("should handle RELEASES_TO_KEEP as 0", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    setInput("RELEASES_TO_KEEP", "0")
+    const inputs = getInputs()
+    expect(inputs.RELEASES_TO_KEEP).toEqual(0)
+  })
+
+  it("should default to 0 for invalid RELEASES_TO_KEEP string", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    setInput("RELEASES_TO_KEEP", "invalid")
+    const inputs = getInputs()
+    expect(inputs.RELEASES_TO_KEEP).toEqual(0)
+  })
+
+  it("should default to 0 for empty RELEASES_TO_KEEP", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    setInput("RELEASES_TO_KEEP", "")
+    const inputs = getInputs()
+    expect(inputs.RELEASES_TO_KEEP).toEqual(0)
+  })
+
+  it("should clamp negative RELEASES_TO_KEEP to 0", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    setInput("RELEASES_TO_KEEP", "-5")
+    const inputs = getInputs()
+    expect(inputs.RELEASES_TO_KEEP).toEqual(0)
+  })
+
+  it("should parse large RELEASES_TO_KEEP number", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    setInput("RELEASES_TO_KEEP", "1000")
+    const inputs = getInputs()
+    expect(inputs.RELEASES_TO_KEEP).toEqual(1000)
   })
 })

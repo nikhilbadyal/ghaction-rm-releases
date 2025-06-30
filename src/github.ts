@@ -10,9 +10,9 @@ export interface Release {
   body: string
   draft: boolean
   prerelease: boolean
+  created_at: string
 }
 
-const minimumReleases = 0
 export function getMyOctokit(
   token: string,
   options?: OctokitOptions
@@ -44,13 +44,18 @@ export async function getReleases(
       }
     )
     const regex = new RegExp(pattern)
-    return releases.filter(function releaseFilter(release) {
-      // Handle null/undefined release objects and tag_name gracefully
-      if (!release?.tag_name) {
-        return false
-      }
-      return regex.test(release.tag_name)
-    })
+    return releases
+      .filter(function releaseFilter(release) {
+        // Handle null/undefined release objects and tag_name gracefully
+        if (!release?.tag_name) {
+          return false
+        }
+        return regex.test(release.tag_name)
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
   } catch (error) {
     throw new Error(
       `Unable to list release: ${error instanceof Error ? error.message : String(error)}`
@@ -102,18 +107,28 @@ async function deleteReleaseAndTag(
 
 export async function rmReleases(
   octokit: InstanceType<typeof GitHub>,
-  releasePattern: string
+  releasePattern: string,
+  releasesToKeep: number
 ): Promise<void> {
   const releases: Release[] = await getReleases(octokit, releasePattern)
   const matches: number = releases.length
-  if (matches > minimumReleases) {
-    info(`Found ${releases.length.toString()} release to delete.`)
-    await Promise.all(
-      releases.map(async release => {
-        await deleteReleaseAndTag(octokit, release)
-      })
+
+  if (matches <= releasesToKeep) {
+    info(
+      `Found ${matches} releases matching the pattern. Keeping all ${matches} releases.`
     )
-  } else {
-    info("No release to delete.")
+    return
   }
+
+  const releasesToDelete = releases.slice(releasesToKeep)
+
+  info(
+    `Found ${matches} releases matching the pattern. Keeping ${releasesToKeep} releases and deleting ${releasesToDelete.length} releases.`
+  )
+
+  await Promise.all(
+    releasesToDelete.map(async release => {
+      await deleteReleaseAndTag(octokit, release)
+    })
+  )
 }
