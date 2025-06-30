@@ -1,4 +1,0 @@
-dist/
-node_modules/
-jest.config.ts
-__test__
