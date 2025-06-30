@@ -6,8 +6,18 @@ export interface ActionInputs {
   readonly RELEASES_TO_KEEP: number
 }
 export function getInputs(): ActionInputs {
-  const releasesToKeep =
-    parseInt(getInput("RELEASES_TO_KEEP", { required: false })) || 0
+  const releasesToKeepInput = getInput("RELEASES_TO_KEEP", { required: false })
+  let releasesToKeep: number
+
+  if (releasesToKeepInput) {
+    const parsedValue = parseInt(releasesToKeepInput)
+    if (isNaN(parsedValue) || parsedValue < 0) {
+      throw new Error("RELEASES_TO_KEEP must be a non-negative integer.")
+    }
+    releasesToKeep = parsedValue
+  } else {
+    releasesToKeep = 0
+  }
 
   return {
     GITHUB_TOKEN: getInput("GITHUB_TOKEN", { required: true }),

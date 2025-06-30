@@ -43,12 +43,11 @@ describe("get inputs", () => {
     expect(inputs.RELEASES_TO_KEEP).toEqual(0)
   })
 
-  it("should default to 0 for invalid RELEASES_TO_KEEP string", function () {
+  it("should throw an error for invalid RELEASES_TO_KEEP string", function () {
     setInput("GITHUB_TOKEN", "mytoken")
     setInput("RELEASE_PATTERN", "pattern*")
     setInput("RELEASES_TO_KEEP", "invalid")
-    const inputs = getInputs()
-    expect(inputs.RELEASES_TO_KEEP).toEqual(0)
+    expect(() => getInputs()).toThrow("RELEASES_TO_KEEP must be a non-negative integer.")
   })
 
   it("should default to 0 for empty RELEASES_TO_KEEP", function () {
@@ -59,12 +58,11 @@ describe("get inputs", () => {
     expect(inputs.RELEASES_TO_KEEP).toEqual(0)
   })
 
-  it("should clamp negative RELEASES_TO_KEEP to 0", function () {
+  it("should throw an error for negative RELEASES_TO_KEEP", function () {
     setInput("GITHUB_TOKEN", "mytoken")
     setInput("RELEASE_PATTERN", "pattern*")
     setInput("RELEASES_TO_KEEP", "-5")
-    const inputs = getInputs()
-    expect(inputs.RELEASES_TO_KEEP).toEqual(0)
+    expect(() => getInputs()).toThrow("RELEASES_TO_KEEP must be a non-negative integer.")
   })
 
   it("should parse large RELEASES_TO_KEEP number", function () {
