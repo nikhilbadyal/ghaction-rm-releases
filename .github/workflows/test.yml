@@ -1,9 +1,12 @@
 name: Tests
 
 on:
+  push:
+    branches:
+      - "main"
   pull_request:
     branches:
-      - 'main'
+      - "main"
   workflow_dispatch:
 
 concurrency:
@@ -15,16 +18,15 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Run tests
-        run : |
+        run: |
           yarn install
           yarn test
         env:
-          GITHUB_TOKEN: ${{ secrets.TEST_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Dump context
         uses: crazy-max/ghaction-dump-context@v2.1.0

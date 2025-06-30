@@ -1,8 +1,7 @@
-import { getOctokit, context } from '@actions/github'
-import type { GitHub } from '@actions/github/lib/utils'
-import { info, setFailed } from '@actions/core'
-import { asyncForEach } from './utils'
-import type { OctokitOptions } from '@octokit/core/dist-types/types'
+import { getOctokit, context } from "@actions/github"
+import type { GitHub } from "@actions/github/lib/utils"
+import { info, setFailed } from "@actions/core"
+import type { OctokitOptions } from "@octokit/core/dist-types/types"
 
 export interface Release {
   id: number
@@ -12,18 +11,16 @@ export interface Release {
   draft: boolean
   prerelease: boolean
 }
-export interface Tag {
-  name: string
-}
+
 const minimumReleases = 0
 export function getMyOctokit(
   token: string,
   options?: OctokitOptions
 ): InstanceType<typeof GitHub> {
-  info('Initiating GitHub connection.')
-  if (token === '') {
-    setFailed('Need "Github Token')
-    throw new Error('Need Github Token')
+  info("Initiating GitHub connection.")
+  if (!token || token.trim() === "") {
+    setFailed("Need Github Token")
+    throw new Error("Need Github Token")
   }
   return getOctokit(token, options)
 }
@@ -33,6 +30,12 @@ export async function getReleases(
   pattern: string
 ): Promise<Release[]> {
   info(`Getting releases matching with ${pattern}`)
+
+  // Return empty array for empty pattern
+  if (!pattern || pattern === "") {
+    return []
+  }
+
   try {
     const releases: Release[] = await octokit.paginate(
       octokit.rest.repos.listReleases,
@@ -40,13 +43,21 @@ export async function getReleases(
         ...context.repo
       }
     )
+    const regex = new RegExp(pattern)
     return releases.filter(function releaseFilter(release) {
-      return release.tag_name.match(pattern)
+      // Handle null/undefined release objects and tag_name gracefully
+      if (!release?.tag_name) {
+        return false
+      }
+      return regex.test(release.tag_name)
     })
   } catch (error) {
-    throw new Error(`Unable to list release: ${error}`)
+    throw new Error(
+      `Unable to list release: ${error instanceof Error ? error.message : String(error)}`
+    )
   }
 }
+
 export async function deleteRelease(
   octokit: InstanceType<typeof GitHub>,
   release: Release
@@ -58,7 +69,9 @@ export async function deleteRelease(
       release_id: release.id
     })
   } catch (error) {
-    throw new Error(`Unable to release tag ${release.id}: ${error}`)
+    throw new Error(
+      `Unable to delete release ${release.id}: ${error instanceof Error ? error.message : String(error)}`
+    )
   }
 }
 
@@ -73,7 +86,9 @@ export async function deleteTag(
       ref: `tags/${tagName}`
     })
   } catch (error) {
-    throw new Error(`Unable to delete tag ${tagName}: ${error}`)
+    throw new Error(
+      `Unable to delete tag ${tagName}: ${error instanceof Error ? error.message : String(error)}`
+    )
   }
 }
 
@@ -93,10 +108,12 @@ export async function rmReleases(
   const matches: number = releases.length
   if (matches > minimumReleases) {
     info(`Found ${releases.length.toString()} release to delete.`)
-    await asyncForEach(releases, async (release: Release) => {
-      await deleteReleaseAndTag(octokit, release)
-    })
+    await Promise.all(
+      releases.map(async release => {
+        await deleteReleaseAndTag(octokit, release)
+      })
+    )
   } else {
-    info('No release to delete.')
+    info("No release to delete.")
   }
 }

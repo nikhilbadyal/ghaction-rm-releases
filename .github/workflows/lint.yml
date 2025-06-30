@@ -1,9 +1,12 @@
 name: Lint
 
 on:
+  push:
+    branches:
+      - "main"
   pull_request:
     branches:
-      - 'main'
+      - "main"
 
 permissions:
   checks: write
@@ -27,13 +30,7 @@ jobs:
         with:
           cache: "yarn"
 
-      - name: Install dependencies
+      - name: Run linters
         run: |
           yarn install
-
-      - name: Run linters
-        uses: wearerequired/lint-action@v2
-        with:
-          eslint: true
-          prettier: true
-          eslint_extensions: 'ts'
+          yarn lints

@@ -1,20 +1,18 @@
-name: 'Rm Release GitHub Action'
-description: 'A GitHub action to remove older releases with their tags.'
-author: 'nikhilbadyal'
+name: "Rm Release GitHub Action"
+description: "A GitHub action to remove releases with their tags based on a regex pattern."
+author: "nikhilbadyal"
 inputs:
   GITHUB_TOKEN:
     required: true
-    description: 'Github token'
+    description: "Github token"
   RELEASE_PATTERN:
     required: true
-    description: 'Regex pattern to match releases.'
+    description: "Regex pattern to match releases."
 
 branding:
-  icon: 'trash'
-  color: 'red'
-
-
+  icon: "trash"
+  color: "red"
 
 runs:
-  using: 'node20'
-  main: 'dist/index.js'
+  using: "node20"
+  main: "dist/index.js"

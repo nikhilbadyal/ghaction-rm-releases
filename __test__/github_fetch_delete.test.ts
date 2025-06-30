@@ -1,31 +1,25 @@
-/* eslint-disable @typescript-eslint/no-magic-numbers */
 import {
   getMyOctokit,
   getReleases,
   rmReleases,
   deleteRelease,
   deleteTag
-} from '../src/github'
-import { parse } from 'dotenv'
-import { beforeEach, describe, expect, it, jest } from '@jest/globals'
-import fs from 'node:fs'
-import { join } from 'node:path'
-import { info } from '@actions/core'
-import { context } from '@actions/github'
+} from "../src/github"
+import { beforeEach, describe, expect, it, jest } from "@jest/globals"
 
 // Mock @actions/github
-jest.mock('@actions/github', () => ({
-  getOctokit: jest.fn(),
+jest.mock("@actions/github", () => ({
   context: {
     repo: {
-      owner: 'nikhilbadyal',
-      repo: 'test-repo'
+      owner: "nikhilbadyal",
+      repo: "test-repo"
     }
-  }
+  },
+  getOctokit: jest.fn()
 }))
 
 // Mock @actions/core
-jest.mock('@actions/core', () => ({
+jest.mock("@actions/core", () => ({
   info: jest.fn(),
   setFailed: jest.fn()
 }))
@@ -33,7 +27,7 @@ jest.mock('@actions/core', () => ({
 const testTimeout = 30_000
 jest.setTimeout(testTimeout)
 
-describe('fetch & delete tests', () => {
+describe("fetch & delete tests", () => {
   let mockOctokit: any
 
   beforeEach(() => {
@@ -41,48 +35,50 @@ describe('fetch & delete tests', () => {
 
     // Create mock octokit instance
     mockOctokit = {
+      paginate: jest.fn(),
       rest: {
-        repos: {
-          listReleases: jest.fn(),
-          deleteRelease: jest.fn(),
-          createRelease: jest.fn()
-        },
         git: {
           deleteRef: jest.fn()
+        },
+        repos: {
+          createRelease: jest.fn(),
+          deleteRelease: jest.fn(),
+          listReleases: jest.fn()
         }
-      },
-      paginate: jest.fn()
+      }
     }
 
     // Mock the getOctokit function to return our mock
-    const { getOctokit } = require('@actions/github')
+    const { getOctokit } = require("@actions/github")
     ;(getOctokit as jest.Mock).mockReturnValue(mockOctokit)
   })
 
-  it('should delete release and tag', async function () {
-    const testTagName = 'test-tag-v1.0.0'
+  it("should delete release and tag", async function () {
+    const testTagName = "test-tag-v1.0.0"
 
     // Mock the initial getReleases call to return the release we want to delete
     const mockReleases = [
       {
-        id: 123,
-        tag_name: testTagName,
-        name: testTagName,
-        body: 'Test release',
+        body: "Test release",
         draft: false,
-        prerelease: false
+        id: 123,
+        name: testTagName,
+        prerelease: false,
+        tag_name: testTagName
       }
     ]
 
-    // First call to getReleases returns the release
+    // First call to getReleases returns the release (for initial verification)
+    mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
+    // Second call to getReleases returns the release (inside rmReleases)
     mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
     // Mock successful deletion calls
     mockOctokit.rest.repos.deleteRelease.mockResolvedValueOnce(undefined)
     mockOctokit.rest.git.deleteRef.mockResolvedValueOnce(undefined)
-    // Second call to getReleases returns empty array (release deleted)
+    // Third call to getReleases returns empty array (release deleted)
     mockOctokit.paginate.mockResolvedValueOnce([])
 
-    const octokit = getMyOctokit('mock-token')
+    const octokit = getMyOctokit("mock-token")
 
     // Verify release exists initially
     let searchedReleases = await getReleases(octokit, testTagName)
@@ -94,14 +90,14 @@ describe('fetch & delete tests', () => {
 
     // Verify deletion API calls were made
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
-      owner: 'nikhilbadyal',
-      repo: 'test-repo',
-      release_id: 123
+      owner: "nikhilbadyal",
+      release_id: 123,
+      repo: "test-repo"
     })
     expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledWith({
-      owner: 'nikhilbadyal',
-      repo: 'test-repo',
-      ref: `tags/${testTagName}`
+      owner: "nikhilbadyal",
+      ref: `tags/${testTagName}`,
+      repo: "test-repo"
     })
 
     // Verify release no longer exists
@@ -110,90 +106,91 @@ describe('fetch & delete tests', () => {
     expect(searchedReleases.length).toEqual(0)
   })
 
-  it('should handle multiple releases deletion', async function () {
+  it("should handle multiple releases deletion", async function () {
     const mockReleases = [
       {
-        id: 1,
-        tag_name: 'v0.0.1',
-        name: 'Release v0.0.1',
-        body: 'Test release 1',
+        body: "Test release 1",
         draft: false,
-        prerelease: false
+        id: 1,
+        name: "Release v0.0.1",
+        prerelease: false,
+        tag_name: "v0.0.1"
       },
       {
-        id: 2,
-        tag_name: 'v0.0.2',
-        name: 'Release v0.0.2',
-        body: 'Test release 2',
+        body: "Test release 2",
         draft: false,
-        prerelease: false
+        id: 2,
+        name: "Release v0.0.2",
+        prerelease: false,
+        tag_name: "v0.0.2"
       }
     ]
 
+    // Mock getReleases call inside rmReleases to return the releases
     mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
     mockOctokit.rest.repos.deleteRelease.mockResolvedValue(undefined)
     mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
 
-    const octokit = getMyOctokit('mock-token')
-    await rmReleases(octokit, '^v0.0.*')
+    const octokit = getMyOctokit("mock-token")
+    await rmReleases(octokit, "^v0.0.*")
 
     // Verify both releases were deleted
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
     expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(2)
 
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
-      owner: 'nikhilbadyal',
-      repo: 'test-repo',
-      release_id: 1
+      owner: "nikhilbadyal",
+      release_id: 1,
+      repo: "test-repo"
     })
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
-      owner: 'nikhilbadyal',
-      repo: 'test-repo',
-      release_id: 2
+      owner: "nikhilbadyal",
+      release_id: 2,
+      repo: "test-repo"
     })
   })
 
-  it('should handle deletion errors gracefully', async function () {
+  it("should handle deletion errors gracefully", async function () {
     const mockRelease = {
-      id: 999,
-      tag_name: 'nonexistent-tag',
-      name: 'Nonexistent Release',
-      body: '',
+      body: "",
       draft: false,
-      prerelease: false
+      id: 999,
+      name: "Nonexistent Release",
+      prerelease: false,
+      tag_name: "nonexistent-tag"
     }
 
-    const octokit = getMyOctokit('mock-token')
+    const octokit = getMyOctokit("mock-token")
 
     // Mock deletion failure
     mockOctokit.rest.repos.deleteRelease.mockRejectedValue(
-      new Error('Release not found')
+      new Error("Release not found")
     )
 
     await expect(deleteRelease(octokit, mockRelease)).rejects.toThrow(
-      'Unable to release tag 999: Error: Release not found'
+      "Unable to delete release 999: Release not found"
     )
   })
 
-  it('should handle tag deletion errors gracefully', async function () {
-    const octokit = getMyOctokit('mock-token')
+  it("should handle tag deletion errors gracefully", async function () {
+    const octokit = getMyOctokit("mock-token")
 
     // Mock tag deletion failure
     mockOctokit.rest.git.deleteRef.mockRejectedValue(
-      new Error('Reference does not exist')
+      new Error("Reference does not exist")
     )
 
-    await expect(deleteTag(octokit, 'nonexistent-tag')).rejects.toThrow(
-      'Unable to delete tag nonexistent-tag: Error: Reference does not exist'
+    await expect(deleteTag(octokit, "nonexistent-tag")).rejects.toThrow(
+      "Unable to delete tag nonexistent-tag: Reference does not exist"
     )
   })
 
-  it('should handle no releases found scenario', async function () {
+  it("should handle no releases found scenario", async function () {
     // Mock empty releases response
     mockOctokit.paginate.mockResolvedValue([])
 
-    const octokit = getMyOctokit('mock-token')
-    await rmReleases(octokit, 'nonexistent-pattern')
+    const octokit = getMyOctokit("mock-token")
+    await rmReleases(octokit, "nonexistent-pattern")
 
     // Verify no deletion calls were made
     expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalled()
