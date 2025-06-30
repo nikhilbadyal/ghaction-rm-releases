@@ -5,14 +5,19 @@ export interface ActionInputs {
   readonly RELEASE_PATTERN: string
   readonly RELEASES_TO_KEEP: number
   readonly EXCLUDE_PATTERN: string
+  readonly DAYS_TO_KEEP: number
 }
 export function getInputs(): ActionInputs {
   const releasesToKeepInput = getInput("RELEASES_TO_KEEP", { required: false })
   let releasesToKeep: number
 
-  if (releasesToKeepInput) {
+  if (releasesToKeepInput && releasesToKeepInput.trim() !== "") {
     const parsedValue = parseInt(releasesToKeepInput)
-    if (isNaN(parsedValue) || parsedValue < 0) {
+    if (
+      isNaN(parsedValue) ||
+      parsedValue < 0 ||
+      releasesToKeepInput !== parsedValue.toString()
+    ) {
       throw new Error("RELEASES_TO_KEEP must be a non-negative integer.")
     }
     releasesToKeep = parsedValue
@@ -20,7 +25,25 @@ export function getInputs(): ActionInputs {
     releasesToKeep = 0
   }
 
+  const daysToKeepInput = getInput("DAYS_TO_KEEP", { required: false })
+  let daysToKeep: number
+
+  if (daysToKeepInput && daysToKeepInput.trim() !== "") {
+    const parsedValue = parseInt(daysToKeepInput)
+    if (
+      isNaN(parsedValue) ||
+      parsedValue < 0 ||
+      daysToKeepInput !== parsedValue.toString()
+    ) {
+      throw new Error("DAYS_TO_KEEP must be a non-negative integer.")
+    }
+    daysToKeep = parsedValue
+  } else {
+    daysToKeep = 0
+  }
+
   return {
+    DAYS_TO_KEEP: daysToKeep,
     EXCLUDE_PATTERN: getInput("EXCLUDE_PATTERN", { required: false }),
     GITHUB_TOKEN: getInput("GITHUB_TOKEN", { required: true }),
     RELEASES_TO_KEEP: releasesToKeep,

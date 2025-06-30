@@ -15,6 +15,10 @@ inputs:
   EXCLUDE_PATTERN:
     required: false
     description: "Regex pattern to exclude releases from deletion."
+  DAYS_TO_KEEP:
+    required: false
+    description: "Number of days to keep releases. Releases older than this will be deleted. Defaults to 0 (delete all matching releases regardless of age)."
+    default: 0
 
 branding:
   icon: "trash"

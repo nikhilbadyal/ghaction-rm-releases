@@ -22,6 +22,7 @@ async function run(): Promise<void> {
       octokit,
       inputs.RELEASE_PATTERN,
       inputs.RELEASES_TO_KEEP,
+      inputs.DAYS_TO_KEEP,
       inputs.EXCLUDE_PATTERN
     )
   } catch (error) {

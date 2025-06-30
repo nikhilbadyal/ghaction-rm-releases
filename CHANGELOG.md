@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.0 (2025/06/30)
+
+- Added `DAYS_TO_KEEP` feature to exclude pattern from release deletion
+
 ## v0.2.0 (2025/06/30)
 
 - Added `EXCLUDE_PATTERN` feature to exclude pattern from release deletion

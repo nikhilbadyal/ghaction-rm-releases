@@ -115,6 +115,7 @@ export async function rmReleases(
   octokit: InstanceType<typeof GitHub>,
   releasePattern: string,
   releasesToKeep: number,
+  daysToKeep?: number,
   excludePattern: string = ""
 ): Promise<void> {
   let releases: Release[] = await getReleases(octokit, releasePattern)
@@ -124,19 +125,40 @@ export async function rmReleases(
     releases = releases.filter(release => !excludeRegex.test(release.tag_name))
   }
 
-  const matches: number = releases.length
+  const releasesToDelete: Release[] = []
+  const now = new Date()
 
-  if (matches <= releasesToKeep) {
+  for (let i = 0; i < releases.length; i++) {
+    const release = releases[i]
+    const releaseDate = new Date(release.created_at)
+    const ageInDays =
+      (now.getTime() - releaseDate.getTime()) / (1000 * 60 * 60 * 24)
+
+    const shouldKeepByCount = i < releasesToKeep
+    // If daysToKeep is undefined or 0, ignore age filtering (don't keep by age)
+    // If daysToKeep > 0, keep releases that are newer than the specified days
+    const shouldKeepByAge =
+      typeof daysToKeep === "number" &&
+      daysToKeep > 0 &&
+      ageInDays <= daysToKeep
+
+    if (!shouldKeepByCount && !shouldKeepByAge) {
+      releasesToDelete.push(release)
+    }
+  }
+
+  const matches: number = releases.length
+  const keptReleasesCount = matches - releasesToDelete.length
+
+  if (releasesToDelete.length === 0) {
     info(
-      `Found ${matches} releases matching the pattern. Keeping all ${matches} releases.`
+      `Found ${matches} releases matching the pattern. No releases to delete based on the provided criteria.`
     )
     return
   }
 
-  const releasesToDelete = releases.slice(releasesToKeep)
-
   info(
-    `Found ${matches} releases matching the pattern. Keeping ${releasesToKeep} releases and deleting ${releasesToDelete.length} releases.`
+    `Found ${matches} releases matching the pattern. Keeping ${keptReleasesCount} releases and deleting ${releasesToDelete.length} releases.`
   )
 
   await Promise.all(
