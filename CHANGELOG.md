@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.0 (2025/06/30)
+
+- Added `RELEASES_TO_KEEP` feature to retain a specified number of recent releases.
+
 ## v0.0.5 (2022/09/08)
 
 - Version Bump
