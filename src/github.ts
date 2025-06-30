@@ -52,10 +52,16 @@ export async function getReleases(
         }
         return regex.test(release.tag_name)
       })
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )
+      .sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime()
+        const dateB = new Date(b.created_at).getTime()
+
+        // Handle invalid dates by treating them as the earliest possible time
+        const timeA = Number.isNaN(dateA) ? 0 : dateA
+        const timeB = Number.isNaN(dateB) ? 0 : dateB
+
+        return timeB - timeA
+      })
   } catch (error) {
     throw new Error(
       `Unable to list release: ${error instanceof Error ? error.message : String(error)}`

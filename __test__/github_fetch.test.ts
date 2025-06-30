@@ -143,4 +143,13 @@ describe("fetching test cases", () => {
     expect(release).not.toBeUndefined()
     expect(release.length).toEqual(0)
   })
+
+  it("should handle invalid regex pattern gracefully", async function () {
+    const octokit = getMyOctokit("mock-token")
+    const invalidPattern = "["
+
+    await expect(getReleases(octokit, invalidPattern)).rejects.toThrow(
+      /Invalid regular expression/
+    )
+  })
 })
