@@ -38,13 +38,14 @@ To use the action, add following to your workflow file
 
 Following inputs can be used as `step.with` keys
 
-| Name               | Type   | Required | Default | Description                                                                                                      |
-| ------------------ | ------ | -------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
-| `GITHUB_TOKEN`     | String | ✅ Yes   |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags |
-| `RELEASE_PATTERN`  | String | ✅ Yes   |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)    |
-| `RELEASES_TO_KEEP` | Number | ❌ No    | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count     |
-| `EXCLUDE_PATTERN`  | String | ❌ No    | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)   |
-| `DAYS_TO_KEEP`     | Number | ❌ No    | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age     |
+| Name               | Type    | Required | Default | Description                                                                                                      |
+|--------------------|---------|----------|---------|------------------------------------------------------------------------------------------------------------------|
+| `GITHUB_TOKEN`     | String  | ✅ Yes    |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags |
+| `RELEASE_PATTERN`  | String  | ✅ Yes    |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)    |
+| `RELEASES_TO_KEEP` | Number  | ❌ No     | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count     |
+| `EXCLUDE_PATTERN`  | String  | ❌ No     | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)   |
+| `DAYS_TO_KEEP`     | Number  | ❌ No     | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age     |
+| `DRY_RUN`          | Boolean | ❌ No     | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.   |
 
 ### Input Validation
 
@@ -85,6 +86,16 @@ The action follows this logic sequence:
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^beta-.*" # Delete all beta releases
+```
+
+### Dry Run - See What Would Be Deleted
+
+```yaml
+- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+  with:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    RELEASE_PATTERN: ".*" # Match all releases
+    DRY_RUN: true # List releases to be deleted without actually deleting them
 ```
 
 ### Keep Recent Releases by Count
@@ -184,7 +195,7 @@ The action provides detailed error messages for common issues:
 ### Common Errors and Solutions
 
 | Error Message                                     | Cause                                             | Solution                                        |
-| ------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------- |
+|---------------------------------------------------|---------------------------------------------------|-------------------------------------------------|
 | `Need Github Token`                               | Missing or empty `GITHUB_TOKEN`                   | Ensure `GITHUB_TOKEN` is provided and not empty |
 | `RELEASES_TO_KEEP must be a non-negative integer` | Invalid `RELEASES_TO_KEEP` value                  | Use a non-negative integer (0, 1, 2, etc.)      |
 | `DAYS_TO_KEEP must be a non-negative integer`     | Invalid `DAYS_TO_KEEP` value                      | Use a non-negative integer (0, 1, 2, etc.)      |
@@ -238,4 +249,4 @@ To test your configuration without actually deleting releases:
 
 Want to contribute? Awesome! The most basic way to show your support is to star the project, or to raise issues.
 
-Thanks again for your support, it is much appreciated! :pray:
+Thanks again for your support, it is much appreciated!
