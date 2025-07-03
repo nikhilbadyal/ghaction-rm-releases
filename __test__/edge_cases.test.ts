@@ -246,9 +246,9 @@ describe("Edge Cases and Input Validation", () => {
 
       const octokit = getMyOctokit("mock-token")
 
-      await expect(rmReleases(octokit, "^v.*", 0)).rejects.toThrow(
-        "Release not found"
-      )
+      await expect(
+        rmReleases({ octokit, releasePattern: "^v.*", releasesToKeep: 0 })
+      ).rejects.toThrow("Release not found")
     })
 
     it("should handle deleteRelease success but deleteTag failure", async () => {
@@ -269,9 +269,9 @@ describe("Edge Cases and Input Validation", () => {
 
       const octokit = getMyOctokit("mock-token")
 
-      await expect(rmReleases(octokit, "^v.*", 0)).rejects.toThrow(
-        "Tag not found"
-      )
+      await expect(
+        rmReleases({ octokit, releasePattern: "^v.*", releasesToKeep: 0 })
+      ).rejects.toThrow("Tag not found")
 
       // Verify release deletion was attempted
       expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.0 (2025/06/30)
+
+- Added `DRY_RUN`, the action will only list the releases to be deleted without actually deleting them.
+
 ## v0.3.0 (2025/06/30)
 
 - Added `DAYS_TO_KEEP` feature to exclude pattern from release deletion

@@ -35,6 +35,9 @@ describe("main.ts", () => {
 
     // Setup default mocks
     mockUtils.getInputs.mockReturnValue({
+      DAYS_TO_KEEP: 0,
+      DRY_RUN: false,
+      EXCLUDE_PATTERN: "",
       GITHUB_TOKEN: "mock-token",
       RELEASES_TO_KEEP: 5,
       RELEASE_PATTERN: "^v0.0.*"
@@ -53,7 +56,14 @@ describe("main.ts", () => {
     expect(mockCore.info).toHaveBeenCalledWith("Getting gitHub Token")
     expect(mockUtils.getInputs).toHaveBeenCalled()
     expect(mockGithub.getMyOctokit).toHaveBeenCalledWith("mock-token")
-    expect(mockGithub.rmReleases).toHaveBeenCalled()
+    expect(mockGithub.rmReleases).toHaveBeenCalledWith({
+      daysToKeep: 0,
+      dryRun: false,
+      excludePattern: "",
+      octokit: {},
+      releasePattern: "^v0.0.*",
+      releasesToKeep: 5
+    })
     expect(mockCore.setFailed).not.toHaveBeenCalled()
   })
 
@@ -96,5 +106,28 @@ describe("main.ts", () => {
 
     // Should call setFailed for non-Error objects
     expect(mockCore.setFailed).toHaveBeenCalledWith("String error")
+  })
+
+  it("should call rmReleases with dryRun true when DRY_RUN input is true", async () => {
+    mockUtils.getInputs.mockReturnValue({
+      DAYS_TO_KEEP: 0,
+      DRY_RUN: true,
+      EXCLUDE_PATTERN: "",
+      GITHUB_TOKEN: "mock-token",
+      RELEASES_TO_KEEP: 5,
+      RELEASE_PATTERN: "^v0.0.*"
+    })
+
+    await import("../src/main")
+    await new Promise(resolve => global.setTimeout(resolve, 100))
+
+    expect(mockGithub.rmReleases).toHaveBeenCalledWith({
+      daysToKeep: 0,
+      dryRun: true,
+      excludePattern: "",
+      octokit: {},
+      releasePattern: "^v0.0.*",
+      releasesToKeep: 5
+    })
   })
 })

@@ -19,6 +19,10 @@ inputs:
     required: false
     description: "Number of days to keep releases. Releases older than this will be deleted. Defaults to 0 (delete all matching releases regardless of age)."
     default: 0
+  DRY_RUN:
+    required: false
+    description: "If true, the action will only list the releases to be deleted without actually deleting them."
+    default: false
 
 branding:
   icon: "trash"

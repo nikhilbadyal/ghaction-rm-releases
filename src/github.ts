@@ -111,13 +111,23 @@ async function deleteReleaseAndTag(
   await deleteTag(octokit, release.tag_name)
 }
 
-export async function rmReleases(
-  octokit: InstanceType<typeof GitHub>,
-  releasePattern: string,
-  releasesToKeep: number,
-  daysToKeep?: number,
-  excludePattern: string = ""
-): Promise<void> {
+export interface RmReleasesOptions {
+  octokit: InstanceType<typeof GitHub>
+  releasePattern: string
+  releasesToKeep: number
+  daysToKeep?: number
+  excludePattern?: string
+  dryRun?: boolean
+}
+
+export async function rmReleases({
+  octokit,
+  releasePattern,
+  releasesToKeep,
+  daysToKeep,
+  excludePattern = "",
+  dryRun = false
+}: RmReleasesOptions): Promise<void> {
   let releases: Release[] = await getReleases(octokit, releasePattern)
 
   if (excludePattern) {
@@ -160,6 +170,14 @@ export async function rmReleases(
   info(
     `Found ${matches} releases matching the pattern. Keeping ${keptReleasesCount} releases and deleting ${releasesToDelete.length} releases.`
   )
+
+  if (dryRun) {
+    info("DRY RUN: The following releases and their tags would be deleted:")
+    for (const release of releasesToDelete) {
+      info(`- Release: ${release.name}, Tag: ${release.tag_name}`)
+    }
+    return
+  }
 
   await Promise.all(
     releasesToDelete.map(async release => {

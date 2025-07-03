@@ -77,7 +77,7 @@ describe("fetch & delete tests", () => {
 
     const octokit = getMyOctokit("mock-token")
     // DAYS_TO_KEEP not passed, age filtering ignored, RELEASES_TO_KEEP is 0 so delete all
-    await rmReleases(octokit, "^v.*", 0)
+    await rmReleases({ octokit, releasePattern: "^v.*", releasesToKeep: 0 })
 
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
     expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(2)
@@ -114,7 +114,12 @@ describe("fetch & delete tests", () => {
 
     const octokit = getMyOctokit("mock-token")
     // Only keep releases from last 5 days
-    await rmReleases(octokit, "^v.*", 0, 5)
+    await rmReleases({
+      daysToKeep: 5,
+      octokit,
+      releasePattern: "^v.*",
+      releasesToKeep: 0
+    })
 
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(1)
     expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(1)
@@ -161,7 +166,12 @@ describe("fetch & delete tests", () => {
 
     const octokit = getMyOctokit("mock-token")
     // DAYS_TO_KEEP is very high, should keep all
-    await rmReleases(octokit, "^v.*", 0, 10000)
+    await rmReleases({
+      daysToKeep: 10000,
+      octokit,
+      releasePattern: "^v.*",
+      releasesToKeep: 0
+    })
 
     expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalled()
     expect(mockOctokit.rest.git.deleteRef).not.toHaveBeenCalled()
@@ -214,7 +224,12 @@ describe("fetch & delete tests", () => {
     // v3.0.0 should be kept by count (most recent)
     // v2.0.0 should be kept by age (20 days < 30 days)
     // v1.0.0 should be deleted (not kept by count and older than 30 days)
-    await rmReleases(octokit, "^v.*", 1, 30)
+    await rmReleases({
+      daysToKeep: 30,
+      octokit,
+      releasePattern: "^v.*",
+      releasesToKeep: 1
+    })
 
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(1)
     expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(1)
@@ -254,7 +269,12 @@ describe("fetch & delete tests", () => {
 
     const octokit = getMyOctokit("mock-token")
     // Keep releases from last 30 days
-    await rmReleases(octokit, "^v.*", 0, 30)
+    await rmReleases({
+      daysToKeep: 30,
+      octokit,
+      releasePattern: "^v.*",
+      releasesToKeep: 0
+    })
 
     // Invalid date should be treated as very old (NaN age), so it should be deleted
     // Valid recent date should be kept
@@ -300,7 +320,13 @@ describe("fetch & delete tests", () => {
 
     const octokit = getMyOctokit("mock-token")
     // Keep releases from last 30 days, exclude RC releases
-    await rmReleases(octokit, "^v.*", 0, 30, ".*-rc$")
+    await rmReleases({
+      daysToKeep: 30,
+      excludePattern: ".*-rc$",
+      octokit,
+      releasePattern: "^v.*",
+      releasesToKeep: 0
+    })
 
     // Only v2.0.0 should be deleted (older than 30 days and not excluded)
     // v1.0.0-rc should be excluded from deletion
@@ -351,7 +377,7 @@ describe("fetch & delete tests", () => {
 
     const octokit = getMyOctokit("mock-token")
     // Keep 2 most recent releases (v0.0.3 and v0.0.2), delete v0.0.1
-    await rmReleases(octokit, "^v0.0.*", 2)
+    await rmReleases({ octokit, releasePattern: "^v0.0.*", releasesToKeep: 2 })
 
     // Verify only the oldest release was deleted
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(1)
@@ -434,7 +460,13 @@ describe("fetch & delete tests", () => {
 
     const octokit = getMyOctokit("mock-token")
     // Keep 2 most recent, keep releases newer than 30 days, exclude stable releases
-    await rmReleases(octokit, "^v.*", 2, 30, ".*-stable$")
+    await rmReleases({
+      daysToKeep: 30,
+      excludePattern: ".*-stable$",
+      octokit,
+      releasePattern: "^v.*",
+      releasesToKeep: 2
+    })
 
     // Expected behavior:
     // v5.0.0: kept by count (most recent)
@@ -507,7 +539,12 @@ describe("fetch & delete tests", () => {
 
     const octokit = getMyOctokit("mock-token")
     // Keep 2 most recent (after exclusion), exclude RC releases
-    await rmReleases(octokit, "^v.*", 2, undefined, ".*-rc$")
+    await rmReleases({
+      excludePattern: ".*-rc$",
+      octokit,
+      releasePattern: "^v.*",
+      releasesToKeep: 2
+    })
 
     // After exclusion: v2.0.0, v3.0.0, v4.0.0 (v1.0.0-rc excluded)
     // Sorted by date (newest first): v4.0.0 (2 days), v3.0.0 (3 days), v2.0.0 (4 days)
@@ -555,7 +592,7 @@ describe("fetch & delete tests", () => {
 
     const octokit = getMyOctokit("mock-token")
     // Keep exactly as many as we have
-    await rmReleases(octokit, "^v.*", 2)
+    await rmReleases({ octokit, releasePattern: "^v.*", releasesToKeep: 2 })
 
     // Should delete nothing
     expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalled()
@@ -582,7 +619,7 @@ describe("fetch & delete tests", () => {
 
     const octokit = getMyOctokit("mock-token")
     // Try to keep more than we have
-    await rmReleases(octokit, "^v.*", 5)
+    await rmReleases({ octokit, releasePattern: "^v.*", releasesToKeep: 5 })
 
     // Should delete nothing (keep the 1 available release)
     expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalled()
@@ -635,7 +672,12 @@ describe("fetch & delete tests", () => {
     mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
 
     const octokit = getMyOctokit("mock-token")
-    await rmReleases(octokit, "^v.*", 0, 30)
+    await rmReleases({
+      daysToKeep: 30,
+      octokit,
+      releasePattern: "^v.*",
+      releasesToKeep: 0
+    })
 
     // Should delete only v2.0.0 (31 days old, beyond 30-day limit)
     // Should keep v1.0.0 (29.5 days old, within limit) and v3.0.0 (10 days old)
@@ -675,7 +717,12 @@ describe("fetch & delete tests", () => {
     mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
 
     const octokit = getMyOctokit("mock-token")
-    await rmReleases(octokit, "^v0.0.*", 0, 0, "") // Empty exclude pattern
+    await rmReleases({
+      excludePattern: "",
+      octokit,
+      releasePattern: "^v0.0.*",
+      releasesToKeep: 0
+    })
 
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
     expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(2)
@@ -708,7 +755,12 @@ describe("fetch & delete tests", () => {
     mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
 
     const octokit = getMyOctokit("mock-token")
-    await rmReleases(octokit, "^v0.0.*", 0, 0, "") // Exclude pattern not provided
+    await rmReleases({
+      excludePattern: "",
+      octokit,
+      releasePattern: "^v0.0.*",
+      releasesToKeep: 0
+    })
 
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
     expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(2)
@@ -729,7 +781,14 @@ describe("fetch & delete tests", () => {
 
     mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
     const octokit = getMyOctokit("mock-token")
-    await expect(rmReleases(octokit, "^v0.0.*", 0, 0, "[")).rejects.toThrow()
+    await expect(
+      rmReleases({
+        excludePattern: "[",
+        octokit,
+        releasePattern: "^v0.0.*",
+        releasesToKeep: 0
+      })
+    ).rejects.toThrow()
   })
 
   it("should exclude all releases if EXCLUDE_PATTERN matches all", async function () {
@@ -759,7 +818,12 @@ describe("fetch & delete tests", () => {
     mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
 
     const octokit = getMyOctokit("mock-token")
-    await rmReleases(octokit, "^v0.0.*", 0, 0, ".*")
+    await rmReleases({
+      excludePattern: ".*",
+      octokit,
+      releasePattern: "^v0.0.*",
+      releasesToKeep: 0
+    })
 
     expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalled()
     expect(mockOctokit.rest.git.deleteRef).not.toHaveBeenCalled()
@@ -792,9 +856,41 @@ describe("fetch & delete tests", () => {
     mockOctokit.rest.git.deleteRef.mockResolvedValue(undefined)
 
     const octokit = getMyOctokit("mock-token")
-    await rmReleases(octokit, "^v0.0.*", 0, 0, "doesnotmatch")
+    await rmReleases({
+      excludePattern: "doesnotmatch",
+      octokit,
+      releasePattern: "^v0.0.*",
+      releasesToKeep: 0
+    })
 
     expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
     expect(mockOctokit.rest.git.deleteRef).toHaveBeenCalledTimes(2)
+  })
+
+  it("should not delete any releases when dryRun is true", async function () {
+    const mockReleases = [
+      {
+        body: "Test release 1",
+        created_at: "2023-01-01T00:00:00Z",
+        draft: false,
+        id: 1,
+        name: "Release v0.0.1",
+        prerelease: false,
+        tag_name: "v0.0.1"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValueOnce(mockReleases)
+    const octokit = getMyOctokit("mock-token")
+
+    await rmReleases({
+      dryRun: true,
+      octokit,
+      releasePattern: "^v0.0.*",
+      releasesToKeep: 0
+    })
+
+    expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalled()
+    expect(mockOctokit.rest.git.deleteRef).not.toHaveBeenCalled()
   })
 })

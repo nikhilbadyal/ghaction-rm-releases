@@ -117,7 +117,11 @@ describe("wrong tags and releases", () => {
     mockOctokit.paginate.mockResolvedValue([])
 
     // This should complete without errors
-    await rmReleases(octokit, "idontexist", 0)
+    await rmReleases({
+      octokit,
+      releasePattern: "idontexist",
+      releasesToKeep: 0
+    })
 
     expect(mockOctokit.paginate).toHaveBeenCalledWith(
       mockOctokit.rest.repos.listReleases,
@@ -138,9 +142,9 @@ describe("wrong tags and releases", () => {
     // Mock authentication error
     mockOctokit.paginate.mockRejectedValue(new Error("Bad credentials"))
 
-    await expect(rmReleases(octokit, "some-pattern", 0)).rejects.toThrow(
-      "Unable to list release: Bad credentials"
-    )
+    await expect(
+      rmReleases({ octokit, releasePattern: "some-pattern", releasesToKeep: 0 })
+    ).rejects.toThrow("Unable to list release: Bad credentials")
   })
 
   it("should handle rate limiting errors", async () => {
