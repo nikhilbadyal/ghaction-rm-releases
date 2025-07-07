@@ -22,7 +22,11 @@ inputs:
   DRY_RUN:
     required: false
     description: "If true, the action will only list the releases to be deleted without actually deleting them."
-    default: false
+    default: "false"
+  DELETE_DRAFT_RELEASES_ONLY:
+    required: false
+    description: "If true, only draft releases will be considered for deletion."
+    default: "false"
 
 branding:
   icon: "trash"

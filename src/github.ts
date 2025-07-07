@@ -118,6 +118,7 @@ export interface RmReleasesOptions {
   daysToKeep?: number
   excludePattern?: string
   dryRun?: boolean
+  deleteDraftReleasesOnly?: boolean
 }
 
 export async function rmReleases({
@@ -126,9 +127,14 @@ export async function rmReleases({
   releasesToKeep,
   daysToKeep,
   excludePattern = "",
-  dryRun = false
+  dryRun = false,
+  deleteDraftReleasesOnly = false
 }: RmReleasesOptions): Promise<void> {
   let releases: Release[] = await getReleases(octokit, releasePattern)
+
+  if (deleteDraftReleasesOnly) {
+    releases = releases.filter(release => release.draft)
+  }
 
   if (excludePattern) {
     const excludeRegex = new RegExp(excludePattern)

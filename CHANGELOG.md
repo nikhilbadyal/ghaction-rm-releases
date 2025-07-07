@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0 (2025/07/07)
+
+- Added `DELETE_DRAFT_RELEASES_ONLY` input to only consider draft releases for deletion.
+
 ## v0.4.0 (2025/06/30)
 
 - Added `DRY_RUN`, the action will only list the releases to be deleted without actually deleting them.

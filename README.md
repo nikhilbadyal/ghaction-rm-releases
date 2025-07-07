@@ -38,14 +38,15 @@ To use the action, add following to your workflow file
 
 Following inputs can be used as `step.with` keys
 
-| Name               | Type    | Required | Default | Description                                                                                                      |
-|--------------------|---------|----------|---------|------------------------------------------------------------------------------------------------------------------|
-| `GITHUB_TOKEN`     | String  | ✅ Yes    |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags |
-| `RELEASE_PATTERN`  | String  | ✅ Yes    |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)    |
-| `RELEASES_TO_KEEP` | Number  | ❌ No     | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count     |
-| `EXCLUDE_PATTERN`  | String  | ❌ No     | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)   |
-| `DAYS_TO_KEEP`     | Number  | ❌ No     | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age     |
-| `DRY_RUN`          | Boolean | ❌ No     | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.   |
+| Name                         | Type    | Required | Default | Description                                                                                                      |
+|------------------------------|---------|----------|---------|------------------------------------------------------------------------------------------------------------------|
+| `GITHUB_TOKEN`               | String  | ✅ Yes    |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags |
+| `RELEASE_PATTERN`            | String  | ✅ Yes    |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)    |
+| `RELEASES_TO_KEEP`           | Number  | ❌ No     | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count     |
+| `EXCLUDE_PATTERN`            | String  | ❌ No     | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)   |
+| `DAYS_TO_KEEP`               | Number  | ❌ No     | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age     |
+| `DRY_RUN`                    | Boolean | ❌ No     | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.   |
+| `DELETE_DRAFT_RELEASES_ONLY` | Boolean | ❌ No     | `false` | If `true`, only draft releases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`. |
 
 ### Input Validation
 
@@ -60,16 +61,18 @@ Following inputs can be used as `step.with` keys
 
 The action follows this logic sequence:
 
-1. **Pattern Matching**: Fetch all releases and filter by `RELEASE_PATTERN`
-2. **Exclusion Filtering**: Remove releases matching `EXCLUDE_PATTERN` (if provided)
-3. **Sort by Date**: Sort remaining releases by creation date (newest first)
-4. **Preservation Logic**: For each release, keep it if **either** condition is true:
+1. **Draft Release Filtering**: If `DELETE_DRAFT_RELEASES_ONLY` is `true`, filter to include only draft releases.
+2. **Pattern Matching**: Fetch all releases and filter by `RELEASE_PATTERN`
+3. **Exclusion Filtering**: Remove releases matching `EXCLUDE_PATTERN` (if provided)
+4. **Sort by Date**: Sort remaining releases by creation date (newest first)
+5. **Preservation Logic**: For each release, keep it if **either** condition is true:
    - **Count-based**: Release is within the `RELEASES_TO_KEEP` most recent releases
    - **Age-based**: Release is newer than `DAYS_TO_KEEP` days old
-5. **Deletion**: Delete releases and their associated tags that don't meet either preservation criteria
+6. **Deletion**: Delete releases and their associated tags that don't meet either preservation criteria
 
 ### Key Points
 
+- **Draft-Only Filtering**: If `DELETE_DRAFT_RELEASES_ONLY` is `true`, the action will exclusively target draft releases, ignoring published releases. This filter is applied at the very beginning of the process.
 - **OR Logic**: `RELEASES_TO_KEEP` and `DAYS_TO_KEEP` work with OR logic - a release is kept if it meets _either_ criteria
 - **Exclusion Priority**: `EXCLUDE_PATTERN` is applied first, so excluded releases are never deleted regardless of other settings
 - **Date Handling**: Invalid or missing creation dates are treated as very old (will be deleted unless kept by count)
@@ -86,6 +89,16 @@ The action follows this logic sequence:
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^beta-.*" # Delete all beta releases
+```
+
+### Delete Only Draft Releases
+
+```yaml
+- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+  with:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    RELEASE_PATTERN: ".*" # Match all releases (drafts will be filtered by DELETE_DRAFT_RELEASES_ONLY)
+    DELETE_DRAFT_RELEASES_ONLY: true # Only target draft releases for deletion
 ```
 
 ### Dry Run - See What Would Be Deleted
@@ -195,7 +208,7 @@ The action provides detailed error messages for common issues:
 ### Common Errors and Solutions
 
 | Error Message                                     | Cause                                             | Solution                                        |
-|---------------------------------------------------|---------------------------------------------------|-------------------------------------------------|
+| ------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------- |
 | `Need Github Token`                               | Missing or empty `GITHUB_TOKEN`                   | Ensure `GITHUB_TOKEN` is provided and not empty |
 | `RELEASES_TO_KEEP must be a non-negative integer` | Invalid `RELEASES_TO_KEEP` value                  | Use a non-negative integer (0, 1, 2, etc.)      |
 | `DAYS_TO_KEEP must be a non-negative integer`     | Invalid `DAYS_TO_KEEP` value                      | Use a non-negative integer (0, 1, 2, etc.)      |
