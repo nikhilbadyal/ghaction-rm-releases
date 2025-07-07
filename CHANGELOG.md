@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.0 (2025/07/07)
+
+- Added `TARGET_BRANCH_PATTERN` input to filter releases based on their associated target branch.
+
 ## v0.6.0 (2025/07/07)
 
 - Added `DELETE_PRERELEASES_ONLY` input to only consider prereleases for deletion.

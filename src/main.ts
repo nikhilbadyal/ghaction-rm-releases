@@ -26,7 +26,8 @@ async function run(): Promise<void> {
       excludePattern: inputs.EXCLUDE_PATTERN,
       octokit,
       releasePattern: inputs.RELEASE_PATTERN,
-      releasesToKeep: inputs.RELEASES_TO_KEEP
+      releasesToKeep: inputs.RELEASES_TO_KEEP,
+      targetBranchPattern: inputs.TARGET_BRANCH_PATTERN
     })
   } catch (error) {
     setFailed(error instanceof Error ? error.message : String(error))

@@ -31,6 +31,10 @@ inputs:
     required: false
     description: "If true, only prereleases will be considered for deletion."
     default: "false"
+  TARGET_BRANCH_PATTERN:
+    required: false
+    description: "Regex pattern to match the target branch of a release's commit. Only releases whose associated commit is on a matching branch will be considered for deletion."
+    default: ""
 
 branding:
   icon: "trash"

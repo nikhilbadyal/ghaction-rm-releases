@@ -38,16 +38,17 @@ To use the action, add following to your workflow file
 
 Following inputs can be used as `step.with` keys
 
-| Name                         | Type    | Required | Default | Description                                                                                                      |
-| ---------------------------- | ------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
-| `GITHUB_TOKEN`               | String  | ✅ Yes   |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags |
-| `RELEASE_PATTERN`            | String  | ✅ Yes   |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)    |
-| `RELEASES_TO_KEEP`           | Number  | ❌ No    | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count     |
-| `EXCLUDE_PATTERN`            | String  | ❌ No    | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)   |
-| `DAYS_TO_KEEP`               | Number  | ❌ No    | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age     |
-| `DRY_RUN`                    | Boolean | ❌ No    | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.   |
-| `DELETE_DRAFT_RELEASES_ONLY` | Boolean | ❌ No    | `false` | If `true`, only draft releases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`. |
-| `DELETE_PRERELEASES_ONLY`    | Boolean | ❌ No    | `false` | If `true`, only prereleases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`.    |
+| Name                         | Type    | Required | Default | Description                                                                                                                                                    |
+|------------------------------|---------|----------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GITHUB_TOKEN`               | String  | ✅ Yes    |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags                                               |
+| `RELEASE_PATTERN`            | String  | ✅ Yes    |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)                                                  |
+| `RELEASES_TO_KEEP`           | Number  | ❌ No     | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count                                                   |
+| `EXCLUDE_PATTERN`            | String  | ❌ No     | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)                                                 |
+| `DAYS_TO_KEEP`               | Number  | ❌ No     | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age                                                   |
+| `DRY_RUN`                    | Boolean | ❌ No     | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.                                                 |
+| `DELETE_DRAFT_RELEASES_ONLY` | Boolean | ❌ No     | `false` | If `true`, only draft releases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`.                                               |
+| `DELETE_PRERELEASES_ONLY`    | Boolean | ❌ No     | `false` | If `true`, only prereleases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`.                                                  |
+| `TARGET_BRANCH_PATTERN`      | String  | ❌ No     | `""`    | Regex pattern to match the target branch of a release's commit. Only releases whose associated commit is on a matching branch will be considered for deletion. |
 
 ### Input Validation
 
@@ -64,18 +65,20 @@ The action follows this logic sequence:
 
 1. **Draft Release Filtering**: If `DELETE_DRAFT_RELEASES_ONLY` is `true`, filter to include only draft releases.
 2. **Prerelease Filtering**: If `DELETE_PRERELEASES_ONLY` is `true`, filter to include only prereleases.
-3. **Pattern Matching**: Fetch all releases and filter by `RELEASE_PATTERN`
-4. **Exclusion Filtering**: Remove releases matching `EXCLUDE_PATTERN` (if provided)
-5. **Sort by Date**: Sort remaining releases by creation date (newest first)
-6. **Preservation Logic**: For each release, keep it if **either** condition is true:
+3. **Target Branch Filtering**: If `TARGET_BRANCH_PATTERN` is provided, filter releases to include only those whose associated commit is on a branch matching the pattern.
+4. **Pattern Matching**: Fetch all releases and filter by `RELEASE_PATTERN`
+5. **Exclusion Filtering**: Remove releases matching `EXCLUDE_PATTERN` (if provided)
+6. **Sort by Date**: Sort remaining releases by creation date (newest first)
+7. **Preservation Logic**: For each release, keep it if **either** condition is true:
    - **Count-based**: Release is within the `RELEASES_TO_KEEP` most recent releases
    - **Age-based**: Release is newer than `DAYS_TO_KEEP` days old
-7. **Deletion**: Delete releases and their associated tags that don't meet either preservation criteria
+8. **Deletion**: Delete releases and their associated tags that don't meet either preservation criteria
 
 ### Key Points
 
 - **Draft-Only Filtering**: If `DELETE_DRAFT_RELEASES_ONLY` is `true`, the action will exclusively target draft releases, ignoring published releases. This filter is applied at the very beginning of the process.
 - **Prerelease-Only Filtering**: If `DELETE_PRERELEASES_ONLY` is `true`, the action will exclusively target prereleases, ignoring stable releases. This filter is applied at the very beginning of the process.
+- **Target Branch Filtering**: If `TARGET_BRANCH_PATTERN` is provided, the action will fetch the commit associated with each release and filter releases based on whether their commit's branch matches the provided pattern. This filter is applied early in the process.
 - **OR Logic**: `RELEASES_TO_KEEP` and `DAYS_TO_KEEP` work with OR logic - a release is kept if it meets _either_ criteria
 - **Exclusion Priority**: `EXCLUDE_PATTERN` is applied first, so excluded releases are never deleted regardless of other settings
 - **Date Handling**: Invalid or missing creation dates are treated as very old (will be deleted unless kept by count)
@@ -174,6 +177,16 @@ The action follows this logic sequence:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases (prereleases will be filtered by DELETE_PRERELEASES_ONLY)
     DELETE_PRERELEASES_ONLY: true # Only target prereleases for deletion
+```
+
+### Delete Releases by Target Branch
+
+```yaml
+- uses: nikhilbadyal/ghaction-rm-releases@v0.6.0
+  with:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    RELEASE_PATTERN: ".*" # Match all releases
+    TARGET_BRANCH_PATTERN: "^release/.*" # Only delete releases whose commit is on a branch starting with 'release/'
 ```
 
 ### Complex Cleanup Strategy

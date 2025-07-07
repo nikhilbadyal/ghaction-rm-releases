@@ -120,6 +120,7 @@ export interface RmReleasesOptions {
   dryRun?: boolean
   deleteDraftReleasesOnly?: boolean
   deletePrereleasesOnly?: boolean
+  targetBranchPattern?: string
 }
 
 export async function rmReleases({
@@ -130,7 +131,8 @@ export async function rmReleases({
   excludePattern = "",
   dryRun = false,
   deleteDraftReleasesOnly = false,
-  deletePrereleasesOnly = false
+  deletePrereleasesOnly = false,
+  targetBranchPattern = ""
 }: RmReleasesOptions): Promise<void> {
   let releases: Release[] = await getReleases(octokit, releasePattern)
 
@@ -138,6 +140,39 @@ export async function rmReleases({
     releases = releases.filter(release => release.draft)
   } else if (deletePrereleasesOnly) {
     releases = releases.filter(release => release.prerelease)
+  }
+
+  // Fetch commit details and filter by target branch pattern
+  if (targetBranchPattern) {
+    const targetBranchRegex = new RegExp(targetBranchPattern)
+    const releasesWithBranches = await Promise.all(
+      releases.map(async release => {
+        try {
+          const { data: tag } = await octokit.rest.git.getRef({
+            ...context.repo,
+            ref: `tags/${release.tag_name}`
+          })
+          const { data: commit } = await octokit.rest.repos.getCommit({
+            ...context.repo,
+            ref: tag.object.sha
+          })
+          let branchName = ""
+          const treeSegment = commit.html_url.split("/tree/")[1]
+          if (treeSegment) {
+            branchName = treeSegment.split("/")[0] || ""
+          }
+          return { branchName, release }
+        } catch (error) {
+          info(
+            `Could not fetch commit for release ${release.tag_name}: ${error instanceof Error ? error.message : String(error)}`
+          )
+          return { branchName: "", release } // Treat as no matching branch if error
+        }
+      })
+    )
+    releases = releasesWithBranches
+      .filter(({ branchName }) => targetBranchRegex.test(branchName))
+      .map(({ release }) => release)
   }
 
   if (excludePattern) {
