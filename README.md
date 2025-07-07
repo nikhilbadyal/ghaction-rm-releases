@@ -39,14 +39,14 @@ To use the action, add following to your workflow file
 Following inputs can be used as `step.with` keys
 
 | Name                         | Type    | Required | Default | Description                                                                                                      |
-| ---------------------------- | ------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
-| `GITHUB_TOKEN`               | String  | ✅ Yes   |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags |
-| `RELEASE_PATTERN`            | String  | ✅ Yes   |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)    |
-| `RELEASES_TO_KEEP`           | Number  | ❌ No    | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count     |
-| `EXCLUDE_PATTERN`            | String  | ❌ No    | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)   |
-| `DAYS_TO_KEEP`               | Number  | ❌ No    | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age     |
-| `DRY_RUN`                    | Boolean | ❌ No    | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.   |
-| `DELETE_DRAFT_RELEASES_ONLY` | Boolean | ❌ No    | `false` | If `true`, only draft releases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`. |
+|------------------------------|---------|----------|---------|------------------------------------------------------------------------------------------------------------------|
+| `GITHUB_TOKEN`               | String  | ✅ Yes    |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags |
+| `RELEASE_PATTERN`            | String  | ✅ Yes    |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)    |
+| `RELEASES_TO_KEEP`           | Number  | ❌ No     | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count     |
+| `EXCLUDE_PATTERN`            | String  | ❌ No     | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)   |
+| `DAYS_TO_KEEP`               | Number  | ❌ No     | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age     |
+| `DRY_RUN`                    | Boolean | ❌ No     | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.   |
+| `DELETE_DRAFT_RELEASES_ONLY` | Boolean | ❌ No     | `false` | If `true`, only draft releases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`. |
 
 ### Input Validation
 
