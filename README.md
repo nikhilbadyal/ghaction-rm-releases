@@ -27,7 +27,7 @@ To use the action, add following to your workflow file
 
 ```yaml
 - name: Delete Older Releases
-  uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+  uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     RELEASE_PATTERN: "Build*"
@@ -39,14 +39,14 @@ To use the action, add following to your workflow file
 Following inputs can be used as `step.with` keys
 
 | Name                         | Type    | Required | Default | Description                                                                                                      |
-|------------------------------|---------|----------|---------|------------------------------------------------------------------------------------------------------------------|
-| `GITHUB_TOKEN`               | String  | ✅ Yes    |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags |
-| `RELEASE_PATTERN`            | String  | ✅ Yes    |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)    |
-| `RELEASES_TO_KEEP`           | Number  | ❌ No     | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count     |
-| `EXCLUDE_PATTERN`            | String  | ❌ No     | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)   |
-| `DAYS_TO_KEEP`               | Number  | ❌ No     | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age     |
-| `DRY_RUN`                    | Boolean | ❌ No     | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.   |
-| `DELETE_DRAFT_RELEASES_ONLY` | Boolean | ❌ No     | `false` | If `true`, only draft releases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`. |
+| ---------------------------- | ------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN`               | String  | ✅ Yes   |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags |
+| `RELEASE_PATTERN`            | String  | ✅ Yes   |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)    |
+| `RELEASES_TO_KEEP`           | Number  | ❌ No    | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count     |
+| `EXCLUDE_PATTERN`            | String  | ❌ No    | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)   |
+| `DAYS_TO_KEEP`               | Number  | ❌ No    | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age     |
+| `DRY_RUN`                    | Boolean | ❌ No    | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.   |
+| `DELETE_DRAFT_RELEASES_ONLY` | Boolean | ❌ No    | `false` | If `true`, only draft releases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`. |
 
 ### Input Validation
 
@@ -85,7 +85,7 @@ The action follows this logic sequence:
 ### Basic Usage - Delete All Matching Releases
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^beta-.*" # Delete all beta releases
@@ -94,7 +94,7 @@ The action follows this logic sequence:
 ### Delete Only Draft Releases
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases (drafts will be filtered by DELETE_DRAFT_RELEASES_ONLY)
@@ -104,7 +104,7 @@ The action follows this logic sequence:
 ### Dry Run - See What Would Be Deleted
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases
@@ -114,7 +114,7 @@ The action follows this logic sequence:
 ### Keep Recent Releases by Count
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^v[0-9]+\\.[0-9]+\\.[0-9]+$" # Match semantic versions
@@ -124,7 +124,7 @@ The action follows this logic sequence:
 ### Keep Recent Releases by Age
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases
@@ -134,7 +134,7 @@ The action follows this logic sequence:
 ### Combined Count and Age Preservation
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^v.*"
@@ -146,7 +146,7 @@ The action follows this logic sequence:
 ### Exclude Specific Releases
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^v.*"
@@ -157,7 +157,7 @@ The action follows this logic sequence:
 ### Complex Cleanup Strategy
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^(dev|test|staging)-.*" # Target dev/test/staging releases
@@ -180,7 +180,7 @@ The GitHub token must have the following permissions:
 #### Option 1: Use GITHUB_TOKEN (Recommended)
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     # ... other inputs
@@ -195,7 +195,7 @@ If you need to run this action on a different repository or need additional perm
 3. Use it in your workflow:
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.4.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.5.0
   with:
     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     # ... other inputs
