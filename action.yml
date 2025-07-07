@@ -27,6 +27,10 @@ inputs:
     required: false
     description: "If true, only draft releases will be considered for deletion."
     default: "false"
+  DELETE_PRERELEASES_ONLY:
+    required: false
+    description: "If true, only prereleases will be considered for deletion."
+    default: "false"
 
 branding:
   icon: "trash"

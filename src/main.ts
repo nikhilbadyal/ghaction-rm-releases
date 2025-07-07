@@ -21,6 +21,7 @@ async function run(): Promise<void> {
     await rmReleases({
       daysToKeep: inputs.DAYS_TO_KEEP,
       deleteDraftReleasesOnly: inputs.DELETE_DRAFT_RELEASES_ONLY,
+      deletePrereleasesOnly: inputs.DELETE_PRERELEASES_ONLY,
       dryRun: inputs.DRY_RUN,
       excludePattern: inputs.EXCLUDE_PATTERN,
       octokit,

@@ -8,6 +8,7 @@ export interface ActionInputs {
   readonly DAYS_TO_KEEP: number
   readonly DRY_RUN: boolean
   readonly DELETE_DRAFT_RELEASES_ONLY: boolean
+  readonly DELETE_PRERELEASES_ONLY: boolean
 }
 export function getInputs(): ActionInputs {
   const releasesToKeepInput = getInput("RELEASES_TO_KEEP", { required: false })
@@ -48,6 +49,8 @@ export function getInputs(): ActionInputs {
     DAYS_TO_KEEP: daysToKeep,
     DELETE_DRAFT_RELEASES_ONLY:
       getInput("DELETE_DRAFT_RELEASES_ONLY", { required: false }) === "true",
+    DELETE_PRERELEASES_ONLY:
+      getInput("DELETE_PRERELEASES_ONLY", { required: false }) === "true",
     DRY_RUN: getInput("DRY_RUN", { required: false }) === "true",
     EXCLUDE_PATTERN: getInput("EXCLUDE_PATTERN", { required: false }),
     GITHUB_TOKEN: getInput("GITHUB_TOKEN", { required: true }),

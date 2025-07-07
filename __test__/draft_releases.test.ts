@@ -279,3 +279,261 @@ describe("Draft Releases Deletion", () => {
     }) // Release 1 should be kept
   })
 })
+
+describe("Prerelease Deletion", () => {
+  let mockOctokit: any
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+
+    mockOctokit = {
+      paginate: jest.fn(),
+      rest: {
+        git: {
+          deleteRef: jest.fn()
+        },
+        repos: {
+          deleteRelease: jest.fn(),
+          listReleases: jest.fn()
+        }
+      }
+    }
+
+    const { getOctokit } = require("@actions/github")
+    ;(getOctokit as jest.Mock).mockReturnValue(mockOctokit)
+  })
+
+  it("should only delete prereleases when deletePrereleasesOnly is true", async () => {
+    const mockReleases = [
+      {
+        created_at: "2024-01-01T00:00:00Z",
+        draft: false,
+        id: 1,
+        name: "Release 1",
+        prerelease: true,
+        tag_name: "v1.0.0"
+      },
+      {
+        created_at: "2024-01-02T00:00:00Z",
+        draft: false,
+        id: 2,
+        name: "Release 2",
+        prerelease: false,
+        tag_name: "v1.0.1"
+      },
+      {
+        created_at: "2024-01-03T00:00:00Z",
+        draft: false,
+        id: 3,
+        name: "Release 3",
+        prerelease: true,
+        tag_name: "v1.0.2-beta"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValue(mockReleases)
+
+    const octokit = getMyOctokit("mock-token")
+
+    await rmReleases({
+      deletePrereleasesOnly: true,
+      octokit,
+      releasePattern: ".*",
+      releasesToKeep: 0
+    })
+
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 1
+    })
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 3
+    })
+    expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 2
+    })
+  })
+
+  it("should not filter by prerelease status when deletePrereleasesOnly is false", async () => {
+    const mockReleases = [
+      {
+        created_at: "2024-01-01T00:00:00Z",
+        draft: false,
+        id: 1,
+        name: "Release 1",
+        prerelease: true,
+        tag_name: "v1.0.0"
+      },
+      {
+        created_at: "2024-01-02T00:00:00Z",
+        draft: false,
+        id: 2,
+        name: "Release 2",
+        prerelease: false,
+        tag_name: "v1.0.1"
+      },
+      {
+        created_at: "2024-01-03T00:00:00Z",
+        draft: false,
+        id: 3,
+        name: "Release 3",
+        prerelease: true,
+        tag_name: "v1.0.2-beta"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValue(mockReleases)
+
+    const octokit = getMyOctokit("mock-token")
+
+    await rmReleases({
+      deletePrereleasesOnly: false,
+      octokit,
+      releasePattern: ".*",
+      releasesToKeep: 0 // Default behavior
+    })
+
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(3)
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 1
+    })
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 2
+    })
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 3
+    })
+  })
+
+  it("should respect releasesToKeep when deleting prereleases", async () => {
+    const mockReleases = [
+      {
+        created_at: "2024-01-01T00:00:00Z",
+        draft: false,
+        id: 1,
+        name: "Release 1",
+        prerelease: true,
+        tag_name: "v1.0.0"
+      },
+      {
+        created_at: "2024-01-02T00:00:00Z",
+        draft: false,
+        id: 2,
+        name: "Release 2",
+        prerelease: true,
+        tag_name: "v1.0.1"
+      },
+      {
+        created_at: "2024-01-03T00:00:00Z",
+        draft: false,
+        id: 3,
+        name: "Release 3",
+        prerelease: true,
+        tag_name: "v1.0.2-beta"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValue(mockReleases)
+
+    const octokit = getMyOctokit("mock-token")
+
+    await rmReleases({
+      // Keep the most recent prerelease
+      deletePrereleasesOnly: true,
+
+      octokit,
+
+      releasePattern: ".*",
+      releasesToKeep: 1
+    })
+
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 1
+    })
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 2
+    })
+    expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 3
+    }) // Release 3 should be kept
+  })
+
+  it("should respect daysToKeep when deleting prereleases", async () => {
+    const now = new Date()
+    const twoDaysAgo = new Date(
+      now.getTime() - 2 * 24 * 60 * 60 * 1000
+    ).toISOString()
+    const fiveDaysAgo = new Date(
+      now.getTime() - 5 * 24 * 60 * 60 * 1000
+    ).toISOString()
+    const tenDaysAgo = new Date(
+      now.getTime() - 10 * 24 * 60 * 60 * 1000
+    ).toISOString()
+
+    const mockReleases = [
+      {
+        created_at: twoDaysAgo,
+        draft: false,
+        id: 1,
+        name: "Release 1",
+        prerelease: true,
+        tag_name: "v1.0.0"
+      },
+      {
+        created_at: fiveDaysAgo,
+        draft: false,
+        id: 2,
+        name: "Release 2",
+        prerelease: true,
+        tag_name: "v1.0.1"
+      },
+      {
+        created_at: tenDaysAgo,
+        draft: false,
+        id: 3,
+        name: "Release 3",
+        prerelease: true,
+        tag_name: "v1.0.2-beta"
+      }
+    ]
+
+    mockOctokit.paginate.mockResolvedValue(mockReleases)
+
+    const octokit = getMyOctokit("mock-token")
+
+    await rmReleases({
+      daysToKeep: 4,
+      // Keep releases newer than 4 days
+      deletePrereleasesOnly: true,
+
+      octokit,
+
+      releasePattern: ".*",
+      releasesToKeep: 0
+    })
+
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledTimes(2)
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 2
+    })
+    expect(mockOctokit.rest.repos.deleteRelease).toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 3
+    })
+    expect(mockOctokit.rest.repos.deleteRelease).not.toHaveBeenCalledWith({
+      ...context.repo,
+      release_id: 1
+    }) // Release 1 should be kept
+  })
+})

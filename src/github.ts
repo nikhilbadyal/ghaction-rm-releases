@@ -119,6 +119,7 @@ export interface RmReleasesOptions {
   excludePattern?: string
   dryRun?: boolean
   deleteDraftReleasesOnly?: boolean
+  deletePrereleasesOnly?: boolean
 }
 
 export async function rmReleases({
@@ -128,12 +129,15 @@ export async function rmReleases({
   daysToKeep,
   excludePattern = "",
   dryRun = false,
-  deleteDraftReleasesOnly = false
+  deleteDraftReleasesOnly = false,
+  deletePrereleasesOnly = false
 }: RmReleasesOptions): Promise<void> {
   let releases: Release[] = await getReleases(octokit, releasePattern)
 
   if (deleteDraftReleasesOnly) {
     releases = releases.filter(release => release.draft)
+  } else if (deletePrereleasesOnly) {
+    releases = releases.filter(release => release.prerelease)
   }
 
   if (excludePattern) {

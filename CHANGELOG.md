@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.6.0 (2025/07/07)
+
+- Added `DELETE_PRERELEASES_ONLY` input to only consider prereleases for deletion.
+
 ## v0.5.0 (2025/07/07)
 
 - Added `DELETE_DRAFT_RELEASES_ONLY` input to only consider draft releases for deletion.
