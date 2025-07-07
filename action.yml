@@ -11,14 +11,14 @@ inputs:
   RELEASES_TO_KEEP:
     required: false
     description: "Number of most recent releases to keep after filtering by RELEASE_PATTERN. Defaults to 0 (delete all matching releases)."
-    default: 0
+    default: "0"
   EXCLUDE_PATTERN:
     required: false
     description: "Regex pattern to exclude releases from deletion."
   DAYS_TO_KEEP:
     required: false
     description: "Number of days to keep releases. Releases older than this will be deleted. Defaults to 0 (delete all matching releases regardless of age)."
-    default: 0
+    default: "0"
   DRY_RUN:
     required: false
     description: "If true, the action will only list the releases to be deleted without actually deleting them."
