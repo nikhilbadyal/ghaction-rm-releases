@@ -8,8 +8,10 @@ A GitHub action to remove older releases with their tags based on a regex patter
 - 📅 **Age-based retention** - Keep releases newer than X days
 - 🔢 **Count-based retention** - Keep the N most recent releases
 - 🚫 **Exclusion patterns** - Protect specific releases from deletion
-- 🔗 **Tag cleanup** - Automatically removes associated Git tags
-- ⚡ **Parallel processing** - Fast deletion of multiple releases
+- 🔗 **Configurable tag cleanup** - Remove associated Git tags by default, or preserve them
+- 🧯 **Safety floor** - Keep a minimum number of matching releases even when cleanup rules are broad
+- ⚡ **Bounded parallel processing** - Fast deletion without unbounded GitHub API fan-out
+- 📤 **Machine-readable outputs** - Emit counts and JSON summaries for audit and dry-run workflows
 
 ---
 
@@ -38,21 +40,25 @@ To use the action, add following to your workflow file
 
 Following inputs can be used as `step.with` keys
 
-| Name                         | Type    | Required | Default | Description                                                                                                                                                    |
-| ---------------------------- | ------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GITHUB_TOKEN`               | String  | ✅ Yes   |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags                                               |
-| `RELEASE_PATTERN`            | String  | ✅ Yes   |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)                                                  |
-| `RELEASES_TO_KEEP`           | Number  | ❌ No    | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count                                                   |
-| `EXCLUDE_PATTERN`            | String  | ❌ No    | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)                                                 |
-| `DAYS_TO_KEEP`               | Number  | ❌ No    | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age                                                   |
-| `DRY_RUN`                    | Boolean | ❌ No    | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.                                                 |
-| `DELETE_DRAFT_RELEASES_ONLY` | Boolean | ❌ No    | `false` | If `true`, only draft releases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`.                                               |
-| `DELETE_PRERELEASES_ONLY`    | Boolean | ❌ No    | `false` | If `true`, only prereleases will be considered for deletion. This filter is applied before `RELEASE_PATTERN`.                                                  |
-| `TARGET_BRANCH_PATTERN`      | String  | ❌ No    | `""`    | Regex pattern to match the target branch of a release's commit. Only releases whose associated commit is on a matching branch will be considered for deletion. |
+| Name                         | Type    | Required | Default | Description                                                                                                      |
+| ---------------------------- | ------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN`               | String  | ✅ Yes   |         | [GitHub Token](https://github.com/settings/tokens) with `contents:write` permissions to delete releases and tags |
+| `RELEASE_PATTERN`            | String  | ✅ Yes   |         | Regular expression pattern to match release tag names for deletion (e.g., `"^v1\\..*"` for all v1.x releases)    |
+| `RELEASES_TO_KEEP`           | Number  | ❌ No    | `0`     | Number of most recent matching releases to keep (sorted by creation date). `0` means don't keep any by count     |
+| `MIN_RELEASES_TO_KEEP`       | Number  | ❌ No    | `0`     | Safety floor for the number of most recent matching releases to keep, even if `RELEASES_TO_KEEP` is lower        |
+| `EXCLUDE_PATTERN`            | String  | ❌ No    | `""`    | Regular expression pattern to exclude releases from deletion (e.g., `".*-stable$"` to exclude stable releases)   |
+| `DAYS_TO_KEEP`               | Number  | ❌ No    | `0`     | Number of days to keep releases. Releases newer than this will be preserved. `0` means don't keep any by age     |
+| `DRY_RUN`                    | Boolean | ❌ No    | `false` | If `true`, the action will list the releases to be deleted without actually deleting them. Useful for testing.   |
+| `DELETE_TAGS`                | Boolean | ❌ No    | `true`  | If `true`, delete each release's Git tag after deleting the release. Set to `false` to preserve tags             |
+| `DELETE_DRAFT_RELEASES_ONLY` | Boolean | ❌ No    | `false` | If `true`, only draft releases that match `RELEASE_PATTERN` will be considered for deletion.                     |
+| `DELETE_PRERELEASES_ONLY`    | Boolean | ❌ No    | `false` | If `true`, only prereleases that match `RELEASE_PATTERN` will be considered for deletion.                        |
+| `TARGET_BRANCH_PATTERN`      | String  | ❌ No    | `""`    | Regex pattern to match branches where the release tag's resolved commit is currently the branch HEAD             |
+| `MAX_CONCURRENCY`            | Number  | ❌ No    | `5`     | Maximum number of GitHub API branch/deletion operations to run at once                                           |
 
 ### Input Validation
 
-- `RELEASES_TO_KEEP` and `DAYS_TO_KEEP` must be non-negative integers
+- `RELEASES_TO_KEEP`, `MIN_RELEASES_TO_KEEP`, and `DAYS_TO_KEEP` must be non-negative integers
+- `MAX_CONCURRENCY` must be a positive integer
 - `RELEASE_PATTERN` and `EXCLUDE_PATTERN` must be valid regular expressions
 - Empty `RELEASE_PATTERN` will result in no releases being processed
 - Invalid regex patterns will cause the action to fail with a descriptive error
@@ -63,28 +69,42 @@ Following inputs can be used as `step.with` keys
 
 The action follows this logic sequence:
 
-1. **Draft Release Filtering**: If `DELETE_DRAFT_RELEASES_ONLY` is `true`, filter to include only draft releases.
-2. **Prerelease Filtering**: If `DELETE_PRERELEASES_ONLY` is `true`, filter to include only prereleases.
-3. **Target Branch Filtering**: If `TARGET_BRANCH_PATTERN` is provided, filter releases to include only those whose associated commit is on a branch matching the pattern.
-4. **Pattern Matching**: Fetch all releases and filter by `RELEASE_PATTERN`
+1. **Pattern Matching**: Fetch all releases and filter by `RELEASE_PATTERN`
+2. **Draft Release Filtering**: If `DELETE_DRAFT_RELEASES_ONLY` is `true`, filter to include only draft releases.
+3. **Prerelease Filtering**: If `DELETE_PRERELEASES_ONLY` is `true`, filter to include only prereleases.
+4. **Target Branch Filtering**: If `TARGET_BRANCH_PATTERN` is provided, resolve the release tag to a commit and keep only releases whose commit is the HEAD of a matching branch.
 5. **Exclusion Filtering**: Remove releases matching `EXCLUDE_PATTERN` (if provided)
 6. **Sort by Date**: Sort remaining releases by creation date (newest first)
 7. **Preservation Logic**: For each release, keep it if **either** condition is true:
-   - **Count-based**: Release is within the `RELEASES_TO_KEEP` most recent releases
+   - **Count-based**: Release is within the greater of `RELEASES_TO_KEEP` and `MIN_RELEASES_TO_KEEP`
    - **Age-based**: Release is newer than `DAYS_TO_KEEP` days old
-8. **Deletion**: Delete releases and their associated tags that don't meet either preservation criteria
+8. **Deletion**: Delete releases that don't meet either preservation criteria, and delete their tags when `DELETE_TAGS=true`
 
 ### Key Points
 
-- **Draft-Only Filtering**: If `DELETE_DRAFT_RELEASES_ONLY` is `true`, the action will exclusively target draft releases, ignoring published releases. This filter is applied at the very beginning of the process.
-- **Prerelease-Only Filtering**: If `DELETE_PRERELEASES_ONLY` is `true`, the action will exclusively target prereleases, ignoring stable releases. This filter is applied at the very beginning of the process.
-- **Target Branch Filtering**: If `TARGET_BRANCH_PATTERN` is provided, the action will fetch the commit associated with each release and filter releases based on whether their commit's branch matches the provided pattern. This filter is applied early in the process.
+- **Draft-Only Filtering**: If `DELETE_DRAFT_RELEASES_ONLY` is `true`, the action will exclusively target draft releases, ignoring published releases.
+- **Prerelease-Only Filtering**: If `DELETE_PRERELEASES_ONLY` is `true`, the action will exclusively target prereleases, ignoring stable releases.
+- **Combined Draft + Prerelease Filtering**: If both flags are `true`, a release must be both a draft and a prerelease to be considered.
+- **Target Branch Filtering**: If `TARGET_BRANCH_PATTERN` is provided, the action resolves lightweight and annotated release tags to a commit, then uses GitHub's branch-head endpoint. This matches branches where the commit is currently the branch HEAD, not every branch that contains the commit in history.
 - **OR Logic**: `RELEASES_TO_KEEP` and `DAYS_TO_KEEP` work with OR logic - a release is kept if it meets _either_ criteria
-- **Exclusion Priority**: `EXCLUDE_PATTERN` is applied first, so excluded releases are never deleted regardless of other settings
+- **Safety Floor**: `MIN_RELEASES_TO_KEEP` raises the count-based retention floor without needing to change an existing `RELEASES_TO_KEEP` cleanup policy.
+- **Exclusion Priority**: Releases matching `EXCLUDE_PATTERN` are removed from deletion consideration, so excluded releases are never deleted regardless of retention settings
 - **Date Handling**: Invalid or missing creation dates are treated as very old (will be deleted unless kept by count)
 - **Zero Values**: Setting `RELEASES_TO_KEEP=0` or `DAYS_TO_KEEP=0` disables that specific preservation method
-- **Tag Cleanup**: When a release is deleted, its associated Git tag is also removed
-- **Atomic Operations**: Each release and tag deletion is performed as a separate API call for reliability
+- **Tag Cleanup**: When `DELETE_TAGS=true`, a release's associated Git tag is removed after the release is deleted. Missing tags are reported as warnings and do not fail cleanup.
+- **Bounded Operations**: Branch lookups and deletion work are limited by `MAX_CONCURRENCY` to avoid unbounded GitHub API fan-out
+
+## Outputs
+
+| Name                         | Description                                                                                     |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| `matched_count`              | Number of releases matching all deletion filters before retention rules are applied             |
+| `kept_count`                 | Number of matching releases preserved by count, safety floor, or age rules                      |
+| `delete_count`               | Number of releases selected for deletion, or that would be deleted during a dry run             |
+| `deleted_count`              | Number of releases actually deleted. This is `0` during dry runs                                |
+| `deleted_tags_count`         | Number of Git tags actually deleted                                                             |
+| `skipped_missing_tags_count` | Number of release tags that were already absent when tag deletion was requested                 |
+| `summary_json`               | JSON summary containing counts, deletion candidates, deleted releases, and skipped missing tags |
 
 ## Examples
 
@@ -111,10 +131,11 @@ The action follows this logic sequence:
 
 ```yaml
 - uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+  id: cleanup
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases
-    DRY_RUN: true # List releases to be deleted without actually deleting them
+    DRY_RUN: true # List releases to be deleted without actually deleting them; read steps.cleanup.outputs.summary_json for machine-readable candidates
 ```
 
 ### Keep Recent Releases by Count
@@ -125,6 +146,16 @@ The action follows this logic sequence:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^v[0-9]+\\.[0-9]+\\.[0-9]+$" # Match semantic versions
     RELEASES_TO_KEEP: 3 # Keep the 3 most recent versions
+```
+
+### Add a Safety Floor
+
+```yaml
+- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+  with:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    RELEASE_PATTERN: ".*" # Match all releases
+    MIN_RELEASES_TO_KEEP: 1 # Always keep at least one matching release, even if other retention inputs are 0
 ```
 
 ### Keep Recent Releases by Age
@@ -160,6 +191,16 @@ The action follows this logic sequence:
     RELEASES_TO_KEEP: 5
 ```
 
+### Delete Releases but Preserve Tags
+
+```yaml
+- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+  with:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    RELEASE_PATTERN: "^nightly-.*" # Delete nightly release records
+    DELETE_TAGS: false # Preserve Git refs for audit or reproducible checkouts
+```
+
 ```yaml
 - name: Delete Older Releases
   uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
@@ -186,7 +227,7 @@ The action follows this logic sequence:
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases
-    TARGET_BRANCH_PATTERN: "^release/.*" # Only delete releases whose commit is on a branch starting with 'release/'
+    TARGET_BRANCH_PATTERN: "^release/.*" # Only delete releases whose resolved tag commit is currently the HEAD of a release/* branch
 ```
 
 ### Complex Cleanup Strategy
@@ -242,15 +283,18 @@ The action provides detailed error messages for common issues:
 
 ### Common Errors and Solutions
 
-| Error Message                                     | Cause                                             | Solution                                        |
-| ------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------- |
-| `Need Github Token`                               | Missing or empty `GITHUB_TOKEN`                   | Ensure `GITHUB_TOKEN` is provided and not empty |
-| `RELEASES_TO_KEEP must be a non-negative integer` | Invalid `RELEASES_TO_KEEP` value                  | Use a non-negative integer (0, 1, 2, etc.)      |
-| `DAYS_TO_KEEP must be a non-negative integer`     | Invalid `DAYS_TO_KEEP` value                      | Use a non-negative integer (0, 1, 2, etc.)      |
-| `Unable to list release`                          | API error or permissions issue                    | Check token permissions and repository access   |
-| `Unable to delete release`                        | Insufficient permissions or release doesn't exist | Verify `contents:write` permission              |
-| `Unable to delete tag`                            | Insufficient permissions or tag doesn't exist     | Verify `contents:write` permission              |
-| Invalid regular expression                        | Malformed regex in patterns                       | Test regex patterns before using                |
+| Error Message                                         | Cause                                             | Solution                                        |
+| ----------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------- |
+| `Need Github Token`                                   | Missing or empty `GITHUB_TOKEN`                   | Ensure `GITHUB_TOKEN` is provided and not empty |
+| `RELEASES_TO_KEEP must be a non-negative integer`     | Invalid `RELEASES_TO_KEEP` value                  | Use a non-negative integer (0, 1, 2, etc.)      |
+| `DAYS_TO_KEEP must be a non-negative integer`         | Invalid `DAYS_TO_KEEP` value                      | Use a non-negative integer (0, 1, 2, etc.)      |
+| `MIN_RELEASES_TO_KEEP must be a non-negative integer` | Invalid `MIN_RELEASES_TO_KEEP` value              | Use a non-negative integer (0, 1, 2, etc.)      |
+| `MAX_CONCURRENCY must be a positive integer`          | Invalid `MAX_CONCURRENCY` value                   | Use a positive integer (1, 2, etc.)             |
+| `<INPUT> must be a boolean value: true or false`      | Invalid boolean input value                       | Use `true` or `false`                           |
+| `Unable to list release`                              | API error or permissions issue                    | Check token permissions and repository access   |
+| `Unable to delete release`                            | Insufficient permissions or release doesn't exist | Verify `contents:write` permission              |
+| `Unable to delete tag`                                | Insufficient permissions or tag doesn't exist     | Verify `contents:write` permission              |
+| Invalid regular expression                            | Malformed regex in patterns                       | Test regex patterns before using                |
 
 ### Dry Run / Testing
 

@@ -33,6 +33,17 @@ export function info(message: string): void {
   console.info(message)
 }
 
+export function warning(message: string | Error): void {
+  // The runtime warning creates an annotation, while the shim only needs visible fallback logging for unexpected unmocked paths.
+  console.warn(message)
+}
+
+export function setOutput(name: string, value: unknown): void {
+  // Tests should assert explicit output behavior through mocks; this fallback mirrors the environment-file side effect closely enough for ad hoc runs.
+  process.env[`OUTPUT_${name.toUpperCase()}`] =
+    typeof value === "string" ? value : JSON.stringify(value)
+}
+
 export function setFailed(message: string | Error): void {
   // The runtime package marks the action failed by setting process.exitCode, so the shim keeps that side effect for any unmocked failure path.
   process.exitCode = 1

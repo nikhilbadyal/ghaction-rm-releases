@@ -23,10 +23,21 @@ jobs:
 
       - name: Run tests
         run: |
-          yarn install
+          yarn install --frozen-lockfile
           yarn test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Typecheck source
+        run: yarn typecheck
+
+      - name: Build bundled action
+        run: yarn build
+
+      - name: Verify bundled action is committed
+        run: |
+          # Users execute dist/index.js, so CI fails when source changes are not reflected in the committed bundle.
+          git diff --exit-code -- dist
 
       - name: Dump context
         uses: crazy-max/ghaction-dump-context@5d2753e7076f4568c7729971e25231f32147e2d8 # v3.0.0

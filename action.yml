@@ -12,6 +12,10 @@ inputs:
     required: false
     description: "Number of most recent releases to keep after filtering by RELEASE_PATTERN. Defaults to 0 (delete all matching releases)."
     default: "0"
+  MIN_RELEASES_TO_KEEP:
+    required: false
+    description: "Safety floor for the number of most recent matching releases to keep, even when other filters would delete them. Defaults to 0."
+    default: "0"
   EXCLUDE_PATTERN:
     required: false
     description: "Regex pattern to exclude releases from deletion."
@@ -23,6 +27,10 @@ inputs:
     required: false
     description: "If true, the action will only list the releases to be deleted without actually deleting them."
     default: "false"
+  DELETE_TAGS:
+    required: false
+    description: "If true, delete each release's Git tag after deleting the release. Set to false to preserve tags."
+    default: "true"
   DELETE_DRAFT_RELEASES_ONLY:
     required: false
     description: "If true, only draft releases will be considered for deletion."
@@ -35,6 +43,26 @@ inputs:
     required: false
     description: "Regex pattern to match the target branch of a release's commit. Only releases whose associated commit is on a matching branch will be considered for deletion."
     default: ""
+  MAX_CONCURRENCY:
+    required: false
+    description: "Maximum number of GitHub API cleanup operations to run at once. Defaults to 5 to avoid unbounded deletion fan-out."
+    default: "5"
+
+outputs:
+  matched_count:
+    description: "Number of releases matching all deletion filters before retention rules are applied."
+  kept_count:
+    description: "Number of matching releases preserved by count, safety floor, or age rules."
+  delete_count:
+    description: "Number of releases selected for deletion, or that would be deleted during a dry run."
+  deleted_count:
+    description: "Number of releases actually deleted. This is 0 during dry runs."
+  deleted_tags_count:
+    description: "Number of Git tags actually deleted."
+  skipped_missing_tags_count:
+    description: "Number of release tags that were already absent when tag deletion was requested."
+  summary_json:
+    description: "JSON summary containing counts and release/tag deletion candidates."
 
 branding:
   icon: "trash"

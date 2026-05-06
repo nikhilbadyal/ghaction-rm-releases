@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals"
 // Mock all dependencies
 jest.mock("@actions/core", () => ({
   info: jest.fn(),
-  setFailed: jest.fn()
+  setFailed: jest.fn(),
+  setOutput: jest.fn()
 }))
 
 jest.mock("../src/github", () => ({
@@ -17,6 +18,17 @@ jest.mock("../src/utils", () => ({
 
 const testTimeout = 30_000
 jest.setTimeout(testTimeout)
+
+const successfulSummary = {
+  deleteCandidates: [],
+  deleteCount: 0,
+  deletedCount: 0,
+  deletedReleases: [],
+  deletedTagsCount: 0,
+  keptCount: 5,
+  matchedCount: 5,
+  skippedMissingTagsCount: 0
+}
 
 describe("main.ts", () => {
   let mockCore: any
@@ -36,14 +48,20 @@ describe("main.ts", () => {
     // Setup default mocks
     mockUtils.getInputs.mockReturnValue({
       DAYS_TO_KEEP: 0,
+      DELETE_DRAFT_RELEASES_ONLY: false,
+      DELETE_PRERELEASES_ONLY: false,
+      DELETE_TAGS: true,
       DRY_RUN: false,
       EXCLUDE_PATTERN: "",
       GITHUB_TOKEN: "mock-token",
+      MAX_CONCURRENCY: 5,
+      MIN_RELEASES_TO_KEEP: 0,
       RELEASES_TO_KEEP: 5,
-      RELEASE_PATTERN: "^v0.0.*"
+      RELEASE_PATTERN: "^v0.0.*",
+      TARGET_BRANCH_PATTERN: ""
     })
     mockGithub.getMyOctokit.mockReturnValue({})
-    mockGithub.rmReleases.mockResolvedValue(undefined)
+    mockGithub.rmReleases.mockResolvedValue(successfulSummary)
   })
 
   it("should run successfully with valid inputs", async () => {
@@ -58,12 +76,23 @@ describe("main.ts", () => {
     expect(mockGithub.getMyOctokit).toHaveBeenCalledWith("mock-token")
     expect(mockGithub.rmReleases).toHaveBeenCalledWith({
       daysToKeep: 0,
+      deleteDraftReleasesOnly: false,
+      deletePrereleasesOnly: false,
+      deleteTags: true,
       dryRun: false,
       excludePattern: "",
+      maxConcurrency: 5,
+      minReleasesToKeep: 0,
       octokit: {},
       releasePattern: "^v0.0.*",
-      releasesToKeep: 5
+      releasesToKeep: 5,
+      targetBranchPattern: ""
     })
+    expect(mockCore.setOutput).toHaveBeenCalledWith("matched_count", 5)
+    expect(mockCore.setOutput).toHaveBeenCalledWith(
+      "summary_json",
+      JSON.stringify(successfulSummary)
+    )
     expect(mockCore.setFailed).not.toHaveBeenCalled()
   })
 
@@ -111,11 +140,17 @@ describe("main.ts", () => {
   it("should call rmReleases with dryRun true when DRY_RUN input is true", async () => {
     mockUtils.getInputs.mockReturnValue({
       DAYS_TO_KEEP: 0,
+      DELETE_DRAFT_RELEASES_ONLY: false,
+      DELETE_PRERELEASES_ONLY: false,
+      DELETE_TAGS: true,
       DRY_RUN: true,
       EXCLUDE_PATTERN: "",
       GITHUB_TOKEN: "mock-token",
+      MAX_CONCURRENCY: 5,
+      MIN_RELEASES_TO_KEEP: 0,
       RELEASES_TO_KEEP: 5,
-      RELEASE_PATTERN: "^v0.0.*"
+      RELEASE_PATTERN: "^v0.0.*",
+      TARGET_BRANCH_PATTERN: ""
     })
 
     await import("../src/main")
@@ -123,11 +158,17 @@ describe("main.ts", () => {
 
     expect(mockGithub.rmReleases).toHaveBeenCalledWith({
       daysToKeep: 0,
+      deleteDraftReleasesOnly: false,
+      deletePrereleasesOnly: false,
+      deleteTags: true,
       dryRun: true,
       excludePattern: "",
+      maxConcurrency: 5,
+      minReleasesToKeep: 0,
       octokit: {},
       releasePattern: "^v0.0.*",
-      releasesToKeep: 5
+      releasesToKeep: 5,
+      targetBranchPattern: ""
     })
   })
 })

@@ -8,8 +8,7 @@
     "noImplicitAny": false /* Raise error on expressions and declarations with an implied 'any' type. */,
     "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "Node",
-    "ignoreDeprecations": "6.0" /* Keep the current resolver because Octokit exposes a deep type import this project still consumes; remove this once module resolution is migrated before TypeScript 7. */,
+    "moduleResolution": "bundler" /* The action is bundled with ncc, so bundler resolution matches the build tool while honoring modern package exports such as @octokit/core/types. */,
     "lib": ["esnext", "ES2021.String"]
   },
   "include": ["src/**/*.ts"],

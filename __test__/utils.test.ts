@@ -14,8 +14,15 @@ function clearInputs(): void {
   delete process.env[getInputName("GITHUB_TOKEN")]
   delete process.env[getInputName("RELEASE_PATTERN")]
   delete process.env[getInputName("RELEASES_TO_KEEP")]
+  delete process.env[getInputName("MIN_RELEASES_TO_KEEP")]
   delete process.env[getInputName("DAYS_TO_KEEP")]
   delete process.env[getInputName("EXCLUDE_PATTERN")]
+  delete process.env[getInputName("DRY_RUN")]
+  delete process.env[getInputName("DELETE_TAGS")]
+  delete process.env[getInputName("DELETE_DRAFT_RELEASES_ONLY")]
+  delete process.env[getInputName("DELETE_PRERELEASES_ONLY")]
+  delete process.env[getInputName("TARGET_BRANCH_PATTERN")]
+  delete process.env[getInputName("MAX_CONCURRENCY")]
 }
 
 describe("get inputs", () => {
@@ -28,6 +35,17 @@ describe("get inputs", () => {
     const inputs = getInputs()
     expect(inputs.GITHUB_TOKEN).toEqual("mytoken")
     expect(inputs.RELEASE_PATTERN).toEqual("pattern*")
+  })
+
+  it("should apply defaults for optional safety and execution controls", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+
+    const inputs = getInputs()
+
+    expect(inputs.DELETE_TAGS).toEqual(true)
+    expect(inputs.MAX_CONCURRENCY).toEqual(5)
+    expect(inputs.MIN_RELEASES_TO_KEEP).toEqual(0)
   })
 
   it("should handle default RELEASES_TO_KEEP when not provided", function () {
@@ -170,6 +188,50 @@ describe("get inputs", () => {
     setInput("DAYS_TO_KEEP", "30.5")
     expect(() => getInputs()).toThrow(
       "DAYS_TO_KEEP must be a non-negative integer."
+    )
+  })
+
+  it("should parse MIN_RELEASES_TO_KEEP and MAX_CONCURRENCY", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    setInput("MIN_RELEASES_TO_KEEP", "2")
+    setInput("MAX_CONCURRENCY", "3")
+
+    const inputs = getInputs()
+
+    expect(inputs.MIN_RELEASES_TO_KEEP).toEqual(2)
+    expect(inputs.MAX_CONCURRENCY).toEqual(3)
+  })
+
+  it("should require MAX_CONCURRENCY to be positive", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    setInput("MAX_CONCURRENCY", "0")
+
+    expect(() => getInputs()).toThrow(
+      "MAX_CONCURRENCY must be a positive integer."
+    )
+  })
+
+  it("should parse YAML-style boolean inputs", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    setInput("DRY_RUN", "TRUE")
+    setInput("DELETE_TAGS", "False")
+
+    const inputs = getInputs()
+
+    expect(inputs.DRY_RUN).toEqual(true)
+    expect(inputs.DELETE_TAGS).toEqual(false)
+  })
+
+  it("should reject invalid boolean inputs", function () {
+    setInput("GITHUB_TOKEN", "mytoken")
+    setInput("RELEASE_PATTERN", "pattern*")
+    setInput("DELETE_TAGS", "yes")
+
+    expect(() => getInputs()).toThrow(
+      "DELETE_TAGS must be a boolean value: true or false."
     )
   })
 })
