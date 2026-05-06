@@ -1,4 +1,8 @@
-module.exports = {
+// The config object is typed without importing runtime helpers so Jest's TypeScript loader can validate options before test transforms run.
+import type { Config } from "jest"
+
+// Jest compiles this file before ts-jest is active, so use a default export instead of the CommonJS `module` global that depends on Node ambient types being loaded.
+const config: Config = {
   bail: true,
   clearMocks: true,
   coveragePathIgnorePatterns: [
@@ -19,3 +23,5 @@ module.exports = {
     "^.+\\.ts$": "ts-jest"
   }
 }
+
+export default config
