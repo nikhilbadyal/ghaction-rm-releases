@@ -29,7 +29,7 @@ To use the action, add following to your workflow file
 
 ```yaml
 - name: Delete Older Releases
-  uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+  uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     RELEASE_PATTERN: "Build*"
@@ -111,7 +111,7 @@ The action follows this logic sequence:
 ### Basic Usage - Delete All Matching Releases
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^beta-.*" # Delete all beta releases
@@ -120,7 +120,7 @@ The action follows this logic sequence:
 ### Delete Only Draft Releases
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases (drafts will be filtered by DELETE_DRAFT_RELEASES_ONLY)
@@ -130,7 +130,7 @@ The action follows this logic sequence:
 ### Dry Run - See What Would Be Deleted
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   id: cleanup
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -141,7 +141,7 @@ The action follows this logic sequence:
 ### Keep Recent Releases by Count
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^v[0-9]+\\.[0-9]+\\.[0-9]+$" # Match semantic versions
@@ -151,7 +151,7 @@ The action follows this logic sequence:
 ### Add a Safety Floor
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases
@@ -161,7 +161,7 @@ The action follows this logic sequence:
 ### Keep Recent Releases by Age
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases
@@ -171,7 +171,7 @@ The action follows this logic sequence:
 ### Combined Count and Age Preservation
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^v.*"
@@ -183,7 +183,7 @@ The action follows this logic sequence:
 ### Exclude Specific Releases
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^v.*"
@@ -194,7 +194,7 @@ The action follows this logic sequence:
 ### Delete Releases but Preserve Tags
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^nightly-.*" # Delete nightly release records
@@ -203,7 +203,7 @@ The action follows this logic sequence:
 
 ```yaml
 - name: Delete Older Releases
-  uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+  uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     RELEASE_PATTERN: "Build*"
@@ -213,7 +213,7 @@ The action follows this logic sequence:
 ### Delete Only Prereleases
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases (prereleases will be filtered by DELETE_PRERELEASES_ONLY)
@@ -223,7 +223,7 @@ The action follows this logic sequence:
 ### Delete Releases by Target Branch
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: ".*" # Match all releases
@@ -233,7 +233,7 @@ The action follows this logic sequence:
 ### Complex Cleanup Strategy
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     RELEASE_PATTERN: "^(dev|test|staging)-.*" # Target dev/test/staging releases
@@ -256,7 +256,7 @@ The GitHub token must have the following permissions:
 #### Option 1: Use GITHUB_TOKEN (Recommended)
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     # ... other inputs
@@ -271,7 +271,7 @@ If you need to run this action on a different repository or need additional perm
 3. Use it in your workflow:
 
 ```yaml
-- uses: nikhilbadyal/ghaction-rm-releases@v0.7.0
+- uses: nikhilbadyal/ghaction-rm-releases@v0.8.0
   with:
     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     # ... other inputs
