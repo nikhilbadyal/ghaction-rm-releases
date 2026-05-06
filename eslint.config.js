@@ -1,9 +1,9 @@
 const typescriptEslint = require("@typescript-eslint/eslint-plugin")
 const typescriptParser = require("@typescript-eslint/parser")
 const prettierPlugin = require("eslint-plugin-prettier")
-const githubPlugin = require("eslint-plugin-github")
 const unicornPlugin = require("eslint-plugin-unicorn")
-const importPlugin = require("eslint-plugin-import")
+// import-x preserves the import rules used below while declaring ESLint 10 compatibility.
+const importPlugin = require("eslint-plugin-import-x")
 const sortKeysFixPlugin = require("eslint-plugin-sort-keys-fix")
 const prettierConfig = require("eslint-config-prettier")
 
@@ -40,7 +40,6 @@ module.exports = [
     },
     plugins: {
       "@typescript-eslint": typescriptEslint,
-      github: githubPlugin,
       import: importPlugin,
       prettier: prettierPlugin,
       "sort-keys-fix": sortKeysFixPlugin,
@@ -471,7 +470,6 @@ module.exports = [
       sourceType: "module"
     },
     plugins: {
-      github: githubPlugin,
       import: importPlugin,
       prettier: prettierPlugin,
       "sort-keys-fix": sortKeysFixPlugin,
