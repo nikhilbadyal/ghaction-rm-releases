@@ -40,4 +40,4 @@ jobs:
           git diff --exit-code -- dist
 
       - name: Dump context
-        uses: crazy-max/ghaction-dump-context@5d2753e7076f4568c7729971e25231f32147e2d8 # v3.0.0
+        uses: crazy-max/ghaction-dump-context@4d9eeaf15dd59aa4346919ea84a84ccf514b4db8 # v3.1.0
