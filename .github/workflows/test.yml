@@ -18,8 +18,12 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
+      # Use the PR head branch (not the merge commit) so auto-commit can push changes back to the PR.
+      # Falls back to the default ref on push/workflow_dispatch where head_ref is empty.
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Run tests
         run: |
@@ -34,10 +38,13 @@ jobs:
       - name: Build bundled action
         run: yarn build
 
-      - name: Verify bundled action is committed
-        run: |
-          # Users execute dist/index.js, so CI fails when source changes are not reflected in the committed bundle.
-          git diff --exit-code -- dist
+      # Auto-commit rebuilt dist/ back to the branch so dependency-update PRs
+      # (Renovate, Dependabot, etc.) don't fail due to an outdated bundle.
+      - name: Commit dist changes
+        uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7.1.0
+        with:
+          commit_message: "chore: rebuild dist"
+          file_pattern: "dist/*"
 
       - name: Dump context
         uses: crazy-max/ghaction-dump-context@4d9eeaf15dd59aa4346919ea84a84ccf514b4db8 # v3.1.0
